@@ -1,0 +1,41 @@
+site_name: VK SDK Android
+site_url: https://vksdk.github.io/vk-sdk-android
+repo_name: vk-sdk-android
+repo_url: https://github.com/vksdk/vk-sdk-android
+site_description: "VK SDK Android"
+site_author: Peter Samokhin
+copyright: 'Copyright &copy; 2020 Peter Samokhin <a href="https://petersamokhin.com">https://petersamokhin.com</a>'
+remote_branch: gh-pages
+
+nav:
+  - 'Overview':    index.md
+  - 'Auth':        auth.md
+  - '0.0.x API':
+      - 'auth': 0.0.x/auth/index.html
+  - 'Changelog':
+      - 'Auth': changelog-auth.md
+
+theme:
+  name: 'material'
+  favicon: images/logo_round.png
+  logo: images/logo_round.png
+  palette:
+    primary: 'indigo'
+    accent: 'indigo'
+
+extra_css:
+  - 'css/custom.css'
+
+extra:
+  social:
+    - icon: fontawesome/brands/github-alt
+      link: https://github.com/vksdk/vk-sdk-android
+    - icon: fontawesome/brands/vk
+      link: https://vk.com/vk_sdk
+
+markdown_extensions:
+  - codehilite:
+      guess_lang: false
+  - admonition
+  - toc:
+      permalink: true

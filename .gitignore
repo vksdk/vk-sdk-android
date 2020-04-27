@@ -1,0 +1,14 @@
+# ItelliJ, Gradle
+build
+.gradle
+.idea
+*.iml
+local.properties
+
+# MacOS
+.DS_Store
+
+# Docs
+/docs/0.0.x
+/docs/index.md
+/docs/changelog-auth.md

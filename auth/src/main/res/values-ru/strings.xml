@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="retry">Повторить</string>
+    <string name="title_error">Произошла ошибка</string>
+    <string name="cancel">Отмена</string>
+</resources>
