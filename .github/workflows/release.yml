@@ -6,7 +6,7 @@ on:
       - '*'
 
 jobs:
-  macos-build:
+  android-build:
     runs-on: ubuntu-latest
 
     steps:

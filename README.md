@@ -16,7 +16,7 @@ See the documentation: [https://vksdk.github.io/vk-sdk-android](https://vksdk.gi
 
 Latest versions:  [![maven-central](https://img.shields.io/badge/Maven%20Central-0.0.1-yellowgreen?style=flat)](https://search.maven.org/search?q=g:com.petersamokhin.vksdk.android)
 
-## Authorize
+## Auth
 [![Android minSdkVersion](https://img.shields.io/badge/minSdkVersion-16-yellowgreen)](https://img.shields.io/badge/minSdkVersion-16-yellowgreen) [![Android targetSdkVersion](https://img.shields.io/badge/targetSdkVersion-29-green)](https://img.shields.io/badge/targetSdkVersion-29-green)
 
 [Authorization code flow](https://vk.com/dev/authcode_flow_user) is not supported by the official VK SDK and by the official app.
@@ -43,7 +43,20 @@ VkAuth.login(activity, appId, VkAuth.ResponseType.AccessToken, scopes) { result 
 }
 ```
 
+## Install
+Library is uploaded to the Maven Central Repository.
+
+Add the following line to your dependencies:
+```groovy
+implementation "com.petersamokhin.vksdk.android:auth:$vkSdkAndroidVersion"
+```
+
 For other information and for details, see the documentation: [https://vksdk.github.io/vk-sdk-android/auth/](https://vksdk.github.io/vk-sdk-android/auth/)
+
+## 3rd party
+- Kotlin, [dokka](https://github.com/Kotlin/dokka)
+- [gradle-maven-publish-plugin](https://github.com/vanniktech/gradle-maven-publish-plugin)
+
 
 ## License
 See the [License](https://github.com/vksdk/vk-sdk-android/blob/master/LICENSE)
