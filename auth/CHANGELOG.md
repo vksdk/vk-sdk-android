@@ -1,6 +1,6 @@
 # Change log
 
-Version 0.0.1 *(2020-04-27)*
+Version 0.0.2 *(2020-04-27)*
 ----------------------------
 
 * Fixed instrumental tests
