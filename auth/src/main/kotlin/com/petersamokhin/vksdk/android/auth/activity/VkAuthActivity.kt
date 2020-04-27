@@ -40,7 +40,7 @@ internal class VkAuthActivity : AppCompatActivity() {
                 showWebView()
             }
             setErrorCallback {
-                setResult(Activity.RESULT_CANCELED)
+                setResult(Activity.RESULT_CANCELED, Intent().putExtra("error_description", it.orEmpty()))
                 finish()
             }
             try {

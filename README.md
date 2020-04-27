@@ -14,10 +14,10 @@ See the available features below.
 
 See the documentation: [https://vksdk.github.io/vk-sdk-android](https://vksdk.github.io/vk-sdk-android)
 
-Latest versions:  [![maven-central](https://img.shields.io/badge/Maven%20Central-0.0.1-yellowgreen?style=flat)](https://search.maven.org/search?q=g:com.petersamokhin.vksdk.android)
-
 ## Auth
 [![Android minSdkVersion](https://img.shields.io/badge/minSdkVersion-16-yellowgreen)](https://img.shields.io/badge/minSdkVersion-16-yellowgreen) [![Android targetSdkVersion](https://img.shields.io/badge/targetSdkVersion-29-green)](https://img.shields.io/badge/targetSdkVersion-29-green)
+
+Latest version:  [![maven-central](https://img.shields.io/badge/Maven%20Central-0.0.2-yellowgreen?style=flat)](https://search.maven.org/search?q=g:com.petersamokhin.vksdk.android)
 
 [Authorization code flow](https://vk.com/dev/authcode_flow_user) is not supported by the official VK SDK and by the official app.
 But it is supported by this auth feature.

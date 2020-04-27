@@ -11,7 +11,7 @@ class VkAuthActivityTest {
     fun intent() {
         val activity = mock(Activity::class.java)
         val params = VkAuth.AuthParams(
-            1, VkAuth.ResponseType.AccessToken, "https://oauth.vk.com/blank.html", "offline"
+            1, VkAuth.ResponseType.AccessToken, "offline", "https://oauth.vk.com/blank.html"
         )
         val intent = VkAuthActivity.intent(activity, params)
 

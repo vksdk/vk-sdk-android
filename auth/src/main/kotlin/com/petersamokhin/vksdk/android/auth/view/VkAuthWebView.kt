@@ -103,7 +103,9 @@ internal class VkAuthWebView @JvmOverloads constructor(
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
             super.onReceivedError(view, request, error)
-            errorCallback?.invoke(error?.description?.toString())
+            view?.context?.also {
+                showError(it, error?.description?.toString())
+            }
         }
 
         override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
@@ -125,7 +127,7 @@ internal class VkAuthWebView @JvmOverloads constructor(
                         d.dismiss()
                     }
                     .setNegativeButton(R.string.cancel) { d, _ ->
-                        errorCallback?.invoke("cancel")
+                        errorCallback?.invoke("description")
                         d.dismiss()
                     }
                     .show()

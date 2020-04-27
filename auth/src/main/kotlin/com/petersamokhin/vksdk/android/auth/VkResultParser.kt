@@ -30,8 +30,6 @@ internal object VkResultParser {
     private const val EMPTY_INT_PARAM = -1
     private const val EMPTY_STRING_PARAM = ""
 
-    private const val ERROR_REQUEST_CODE_UNKNOWN = "requestCode is unknown"
-
     /**
      * The authorization result returned by the activity with WebView or from VK App
      * can be parsed using this method.
@@ -62,6 +60,7 @@ internal object VkResultParser {
 
                 when {
                     extras.containsKey(VkAuthActivity.EXTRA_AUTH_RESULT) -> {
+                        @Suppress("RemoveExplicitTypeArguments")
                         (extras.getValue(VkAuthActivity.EXTRA_AUTH_RESULT) as String).let<String, VkAuthResult> { resultUrlString ->
                             val params = parseVkUri(resultUrlString)
 
