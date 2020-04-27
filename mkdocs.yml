@@ -13,7 +13,7 @@ nav:
   - '0.0.x API':
       - 'auth': 0.0.x/auth/index.html
   - 'Changelog':
-      - 'Auth': changelog-auth.md
+      - 'Changelog: Auth': changelog-auth.md
 
 theme:
   name: 'material'

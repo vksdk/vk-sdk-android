@@ -170,3 +170,52 @@ val params = VkAuth.AuthParams(
 
 VkAuth.login(activity, params, callback)
 ```
+
+## Handle the result
+[*`VkAuthResult`*](https://vksdk.github.io/vk-sdk-android/0.0.x/auth/com.petersamokhin.vksdk.android.auth.model/-vk-auth-result/) is a sealed class.
+
+If `responseType` is `VkAuth.ResponseType.AccessToken`, you will get the `VkAuthResult.AccessToken`.
+If `responseType` is `VkAuth.ResponseType.Code`, you will get the `VkAuthResult.Code`.
+
+If auth is unsuccesfull and some error occured, you will get the `VkAuthResult.Error`.
+Check the `error`, `errorReason` and `errorDescription` fields of the result.
+But if page wasn't shown and some error occurred before the auth process, these fields will be empty and `exception` field will contain the exception.
+
+Example for `AccessToken`:
+```kotlin
+val params = VkAuth.AuthParams(
+    appId,
+    VkAuth.ResponseType.AccessToken
+)
+
+VkAuth.login(activity, params) { result ->
+    when (result) {
+        is VkAuthResult.AccessToken -> {
+            /* do something with result.accessToken, result.expiresIn, result.userId, etc. */
+        }
+        is VkAuthResult.Error -> {
+            /* do something with result.error */
+        }
+    }
+}
+```
+
+
+Example for `Code`:
+```kotlin
+val params = VkAuth.AuthParams(
+    appId,
+    VkAuth.ResponseType.Code
+)
+
+VkAuth.login(activity, params) { result ->
+    when (result) {
+        is VkAuthResult.Code -> {
+            /* do something with result.code, result.state */
+        }
+        is VkAuthResult.Error -> {
+            /* do something with result.error, etc. or with result.exception */
+        }
+    }
+}
+```
