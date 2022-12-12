@@ -1,5 +1,3 @@
-apply plugin: 'org.jetbrains.dokka'
-
 /**
  * Should be changed after each major and minor release.
  * Also, previous docs subdirectory should be added to .gitignore file.
