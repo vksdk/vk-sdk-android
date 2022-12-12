@@ -1,3 +1,5 @@
+import com.android.build.gradle.LibraryExtension
+
 plugins {
     id("com.android.library")
     kotlin("android")
@@ -6,17 +8,15 @@ plugins {
     id("kotlin-android-extensions")
 }
 
-android {
-    compileSdkVersion(Config.Android.compileSdk)
+configure<LibraryExtension> {
+    compileSdk = Config.Android.compileSdk
     defaultConfig {
-        minSdkVersion(Config.Android.minSdk)
-        targetSdkVersion(Config.Android.compileSdk)
-        buildToolsVersion(Config.Android.buildToolsVersion)
+        minSdk = Config.Android.minSdk
+        targetSdk = Config.Android.compileSdk
+        buildToolsVersion = Config.Android.buildToolsVersion
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // applicationId = "${project.property("GROUP").toString()}.auth"
-        versionCode = 1
-        versionName = "0.0.1"
     }
     buildTypes {
         getByName("release") {
@@ -29,13 +29,12 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
-    }
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString()
+
     sourceSets {
-        val main by getting {}
-        val test by getting {}
-        val androidTest by getting {}
+        val main by getting
+        val test by getting
+        val androidTest by getting
         main.java.srcDirs("src/main/kotlin")
         test.java.srcDirs("src/test/kotlin")
         androidTest.java.srcDirs("src/androidTest/kotlin")
@@ -45,11 +44,11 @@ android {
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     implementation(kotlin("stdlib-jdk8", Config.Versions.Kotlin.kotlin))
-    
+
     implementation("androidx.appcompat:appcompat:${Config.Versions.Android.appCompat}")
     implementation("androidx.core:core-ktx:${Config.Versions.Android.coreKtx}")
     implementation("androidx.constraintlayout:constraintlayout:${Config.Versions.Android.constraintLayout}")
-    
+
     testImplementation("junit:junit:${Config.Versions.Test.junit}")
 
     androidTestImplementation("androidx.test:runner:${Config.Versions.AndroidTest.runner}")

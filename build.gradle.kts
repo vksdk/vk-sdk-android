@@ -2,7 +2,6 @@ buildscript {
     repositories {
         mavenCentral()
         google()
-        jcenter()
     }
 
     dependencies {
@@ -17,17 +16,12 @@ allprojects {
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class).all {
         JavaVersion.VERSION_1_8.toString().also {
             kotlinOptions.jvmTarget = it
-            if (plugins.hasPlugin("org.jetbrains.kotlin.jvm")) {
-                sourceCompatibility = it
-                targetCompatibility = it
-            }
         }
     }
 
     repositories {
         mavenCentral()
         google()
-        jcenter()
     }
 
     group = project.property("GROUP").toString()
