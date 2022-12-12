@@ -2,6 +2,7 @@ package com.petersamokhin.vksdk.android.auth.hidden
 
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
 import androidx.annotation.CheckResult
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -24,10 +25,7 @@ internal class HiddenFragment : Fragment() {
         data: Intent?
     ) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == requestCode()) {
-            lastListener?.onActivityResult(requestCode, resultCode, data)
-            lastListener = null
-        }
+        parentFragmentManager.setFragmentResult(requestCode.toString(), data?.extras ?: Bundle())
     }
 
     private fun alreadyStarted(): Boolean = requireArguments().getBoolean(EXTRA_ALREADY_STARTED)
@@ -39,17 +37,13 @@ internal class HiddenFragment : Fragment() {
     private fun requestCode(): Int = requireArguments().getInt(EXTRA_REQUEST_CODE)
 
     companion object {
-        private var lastListener: ActivityResultListener? = null
 
         @CheckResult
         @JvmStatic
         fun newInstance(
             launchIntent: Intent,
             requestCode: Int,
-            listener: ActivityResultListener
         ): HiddenFragment {
-            if (lastListener != null) throw IllegalStateException()
-            lastListener = listener
             return HiddenFragment().apply {
                 arguments = bundleOf(
                     EXTRA_INTENT to launchIntent,
@@ -60,15 +54,10 @@ internal class HiddenFragment : Fragment() {
 
         @JvmStatic
         fun clear() {
-            lastListener = null
         }
 
         private const val EXTRA_INTENT = "EXTRA_INTENT"
         private const val EXTRA_REQUEST_CODE = "EXTRA_REQUEST_CODE"
         private const val EXTRA_ALREADY_STARTED = "EXTRA_ALREADY_STARTED"
     }
-}
-
-internal interface ActivityResultListener {
-    fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?)
 }

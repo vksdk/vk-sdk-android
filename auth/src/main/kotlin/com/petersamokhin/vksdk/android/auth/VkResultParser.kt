@@ -1,14 +1,11 @@
 package com.petersamokhin.vksdk.android.auth
 
-import android.app.Activity
-import android.content.Intent
-import android.util.Log
+import android.os.Bundle
 import androidx.annotation.CheckResult
 import androidx.annotation.VisibleForTesting
 import com.petersamokhin.vksdk.android.auth.activity.VkAuthActivity
 import com.petersamokhin.vksdk.android.auth.error.VkAuthCanceledException
 import com.petersamokhin.vksdk.android.auth.model.VkAuthResult
-import com.petersamokhin.vksdk.android.auth.utils.toMap
 
 /**
  * Parser of the VK result intents and URIs
@@ -34,23 +31,16 @@ internal object VkResultParser {
      * The authorization result returned by the activity with WebView or from VK App
      * can be parsed using this method.
      *
-     * @param requestCode See [Activity.onActivityResult]
-     * @param resultCode See [Activity.onActivityResult]
-     * @param intent See [Activity.onActivityResult]
+     * @param requestKey See [androidx.fragment.app.FragmentResultListener.onFragmentResult]
+     * @param result See [androidx.fragment.app.FragmentResultListener.onFragmentResult]
      * @return Parsed authorization result
      */
     @JvmStatic
     @CheckResult
-    fun parse(requestCode: Int, resultCode: Int, intent: Intent?): VkAuthResult? {
-        return parse(requestCode, resultCode, intent?.extras?.toMap())
-    }
-
-    @JvmStatic
-    @CheckResult
-    fun parse(requestCode: Int, resultCode: Int, extras: Map<String, Any?>?): VkAuthResult? {
-        return when (requestCode) {
-            VkAuth.VK_AUTH_CODE -> {
-                if (extras == null)
+    fun parse(requestKey: String, result: Bundle?): VkAuthResult? {
+        return when (requestKey) {
+            VkAuth.VK_AUTH_CODE.toString() -> {
+                if (result == null)
                     return VkAuthResult.Error(
                         EMPTY_STRING_PARAM,
                         EMPTY_STRING_PARAM,
@@ -59,9 +49,9 @@ internal object VkResultParser {
                     )
 
                 when {
-                    extras.containsKey(VkAuthActivity.EXTRA_AUTH_RESULT) -> {
+                    result.containsKey(VkAuthActivity.EXTRA_AUTH_RESULT) -> {
                         @Suppress("RemoveExplicitTypeArguments")
-                        (extras.getValue(VkAuthActivity.EXTRA_AUTH_RESULT) as String).let<String, VkAuthResult> { resultUrlString ->
+                        result.getString(VkAuthActivity.EXTRA_AUTH_RESULT)?.let<String, VkAuthResult> { resultUrlString ->
                             val params = parseVkUri(resultUrlString)
 
                             when {
@@ -80,27 +70,26 @@ internal object VkResultParser {
                                     params[VK_EXTRA_ERROR] ?: EMPTY_STRING_PARAM,
                                     params[VK_EXTRA_ERROR_DESCRIPTION] ?: EMPTY_STRING_PARAM,
                                     params[VK_EXTRA_ERROR_REASON] ?: EMPTY_STRING_PARAM,
-                                    if (resultCode != Activity.RESULT_OK) VkAuthCanceledException() else null
+                                  null
                                 )
                             }
                         }
                     }
-                    extras.containsKey(VK_EXTRA_ACCESS_TOKEN) -> {
+                    result.containsKey(VK_EXTRA_ACCESS_TOKEN) -> {
                         VkAuthResult.AccessToken(
-                            extras[VK_EXTRA_ACCESS_TOKEN] as? String ?: EMPTY_STRING_PARAM,
-                            extras[VK_EXTRA_EXPIRES_IN] as? Int ?: EMPTY_INT_PARAM,
-                            extras[VK_EXTRA_USER_ID] as? Int ?: EMPTY_INT_PARAM,
-                            extras[VK_EXTRA_EMAIL] as? String ?: EMPTY_STRING_PARAM,
-                            extras[VK_EXTRA_STATE] as? String
-                                ?: EMPTY_STRING_PARAM // state is never returned by the VK App
+                            result.getString(VK_EXTRA_ACCESS_TOKEN, EMPTY_STRING_PARAM),
+                            result.getInt(VK_EXTRA_EXPIRES_IN, EMPTY_INT_PARAM),
+                            result.getInt(VK_EXTRA_USER_ID, EMPTY_INT_PARAM),
+                            result.getString(VK_EXTRA_EMAIL, EMPTY_STRING_PARAM),
+                            result.getString(VK_EXTRA_STATE,  EMPTY_STRING_PARAM) // state is never returned by the VK App
                         )
                     }
                     else -> {
                         VkAuthResult.Error(
-                            extras[VK_EXTRA_ERROR] as? String,
-                            extras[VK_EXTRA_ERROR_REASON] as? String,
-                            extras[VK_EXTRA_ERROR_DESCRIPTION] as? String,
-                            if (resultCode != Activity.RESULT_OK) VkAuthCanceledException() else null
+                            result.getString(VK_EXTRA_ERROR, null),
+                            result.getString(VK_EXTRA_ERROR_REASON, null),
+                            result.getString(VK_EXTRA_ERROR_DESCRIPTION, null),
+                            null
                         )
                     }
                 }

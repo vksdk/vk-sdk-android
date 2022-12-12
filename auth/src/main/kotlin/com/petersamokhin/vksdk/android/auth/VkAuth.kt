@@ -11,7 +11,6 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.FragmentActivity
 import com.petersamokhin.vksdk.android.auth.activity.VkAuthActivity
 import com.petersamokhin.vksdk.android.auth.error.VkAppMissingException
-import com.petersamokhin.vksdk.android.auth.hidden.ActivityResultListener
 import com.petersamokhin.vksdk.android.auth.hidden.HiddenFragment
 import com.petersamokhin.vksdk.android.auth.model.VkAuthResult
 
@@ -57,14 +56,13 @@ object VkAuth {
      * The authorization result returned by the activity with WebView or from VK App
      * can be parsed using this method.
      *
-     * @param requestCode See [Activity.onActivityResult]
-     * @param resultCode See [Activity.onActivityResult]
-     * @param data See [Activity.onActivityResult]
+     * @param requestKey See [androidx.fragment.app.FragmentResultListener.onFragmentResult]
+     * @param result See [androidx.fragment.app.FragmentResultListener.onFragmentResult]
      * @return Parsed authorization result, null if requestCode is wrong
      */
     @JvmStatic
     @CheckResult
-    fun parseResult(requestCode: Int, resultCode: Int, data: Intent?): VkAuthResult? = VkResultParser.parse(requestCode, resultCode, data)
+    fun parseResult(requestKey: String, result: Bundle?): VkAuthResult? = VkResultParser.parse(requestKey, result)
 
     /**
      * Login with VK using the available methods:
@@ -420,22 +418,18 @@ object VkAuth {
     ): DisposableItem {
         return object : DisposableItem {
             init {
-                val item = HiddenFragment.newInstance(
-                    intent,
-                    VK_AUTH_CODE,
-                    object : ActivityResultListener {
-                        override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-                            VkResultParser.parse(requestCode, resultCode, data)?.also(listener::onResult)
+                val item = HiddenFragment.newInstance(intent, VK_AUTH_CODE)
 
-                            fragmentActivity.supportFragmentManager.findFragmentByTag(FRAGMENT_TAG)?.also {
-                                fragmentActivity.supportFragmentManager
-                                    .beginTransaction()
-                                    .remove(it)
-                                    .commitAllowingStateLoss()
-                            }
-                        }
+                fragmentActivity.supportFragmentManager.setFragmentResultListener(VK_AUTH_CODE.toString(), item) { requestKey, result ->
+                    VkResultParser.parse(requestKey, result)?.also(listener::onResult)
+
+                    fragmentActivity.supportFragmentManager.findFragmentByTag(FRAGMENT_TAG)?.also {
+                        fragmentActivity.supportFragmentManager
+                          .beginTransaction()
+                          .remove(it)
+                          .commitAllowingStateLoss()
                     }
-                )
+                }
 
                 fragmentActivity.supportFragmentManager
                     .beginTransaction()
