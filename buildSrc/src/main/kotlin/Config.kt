@@ -15,7 +15,7 @@ object Config {
             const val mockito = "2.28.2"
         }
         object Android {
-            const val appCompat = "1.1.0"
+            const val appCompat = "1.3.0"
             const val coreKtx = "1.2.0"
             const val constraintLayout = "1.1.3"
         }

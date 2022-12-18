@@ -6,21 +6,21 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.CheckResult
 import androidx.core.os.bundleOf
-import androidx.fragment.app.FragmentActivity
 import com.petersamokhin.vksdk.android.auth.activity.VkAuthActivity
 import com.petersamokhin.vksdk.android.auth.error.VkAppMissingException
-import com.petersamokhin.vksdk.android.auth.hidden.ActivityResultListener
-import com.petersamokhin.vksdk.android.auth.hidden.HiddenFragment
 import com.petersamokhin.vksdk.android.auth.model.VkAuthResult
+import java.util.*
 
 /**
  * VK authorization handler.
  */
 object VkAuth {
     private const val LOG_TAG = "vksdk.android.auth"
-    private const val FRAGMENT_TAG = "vksdk.android.auth.fragment"
 
     private const val VK_APP_AUTH_ACTION = "com.vkontakte.android.action.SDK_AUTH"
     internal const val VK_AUTH_CODE = 1337
@@ -39,10 +39,39 @@ object VkAuth {
     private const val VK_EXTRA_DISPLAY = "display"
     private const val VK_STATE = "state"
 
+    private val resultLaunchers = WeakHashMap<ComponentActivity, ActivityResultLauncher<Intent>>()
+
+    /**
+     * Register the given activity for auth result.
+     * See [ComponentActivity.registerForActivityResult]
+     * Result will be returned to [listener]
+     */
+    @JvmStatic
+    fun register(activity: ComponentActivity, listener: ResultListener) {
+        val resultLauncher = activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            VkResultParser.parse(VK_AUTH_CODE, it.resultCode, it.data)?.also(listener::onResult)
+        }
+        resultLaunchers[activity] = resultLauncher
+    }
+
+    /**
+     * Register the given activity for auth result.
+     * See [ComponentActivity.registerForActivityResult]
+     * Result will be returned to [listener]
+     */
+    @JvmStatic
+    fun register(activity: ComponentActivity, listener: (VkAuthResult) -> Unit) {
+        val resultLauncher = activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            VkResultParser.parse(VK_AUTH_CODE, it.resultCode, it.data)?.also { result -> listener.invoke(result) }
+        }
+        resultLaunchers[activity] = resultLauncher
+    }
+
     /**
      * Checks is the official VK app installed
      * to be able to authorize through the app without the WebView
      */
+    @Suppress("DEPRECATION")
     @JvmStatic
     fun isVkAppInstalled(context: Context): Boolean {
         return try {
@@ -70,394 +99,10 @@ object VkAuth {
      * Login with VK using the available methods:
      * - if VK App is installed, it will be used
      * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [listener]
      */
     @JvmStatic
-    @CheckResult
     fun loginWithApp(
-        fragmentActivity: FragmentActivity,
-        clientId: Int,
-        responseType: ResponseType,
-        scopes: List<Scope> = listOf(),
-        redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
-        state: String = "",
-        revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT,
-        listener: ResultListener
-    ): DisposableItem {
-        return loginWithApp(fragmentActivity, AuthParams(
-            clientId,
-            responseType,
-            scopes,
-            redirectUri,
-            display,
-            state,
-            revoke,
-            apiVersion
-        ), listener)
-    }
-
-    /**
-     * Login with VK using the available methods:
-     * - if VK App is installed, it will be used
-     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [listener]
-     */
-    @JvmStatic
-    @CheckResult
-    fun loginWithApp(
-        fragmentActivity: FragmentActivity,
-        clientId: Int,
-        responseType: ResponseType,
-        scopes: List<Scope> = listOf(),
-        redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
-        state: String = "",
-        revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT,
-        listener: (VkAuthResult) -> Unit
-    ): DisposableItem {
-        return loginWithApp(fragmentActivity, AuthParams(
-            clientId,
-            responseType,
-            scopes,
-            redirectUri,
-            display,
-            state,
-            revoke,
-            apiVersion
-        ), listener)
-    }
-
-    /**
-     * Login with VK using the available methods:
-     * - if VK App is installed, it will be used
-     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [listener]
-     *
-     * @return Disposable item: clear listeners when it needed
-     */
-    @JvmStatic
-    @CheckResult
-    fun loginWithApp(
-        fragmentActivity: FragmentActivity,
-        authParams: AuthParams,
-        listener: (VkAuthResult) -> Unit
-    ): DisposableItem {
-        if (isVkAppInstalled(fragmentActivity))
-            throw VkAppMissingException()
-
-        return loginHidden(
-            fragmentActivity,
-            intentVkApp(authParams),
-            object : ResultListener {
-                override fun onResult(result: VkAuthResult) = listener(result)
-            }
-        )
-    }
-
-    /**
-     * Login with VK using the available methods:
-     * - if VK App is installed, it will be used
-     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [listener]
-     */
-    @JvmStatic
-    @CheckResult
-    fun loginWithApp(
-        fragmentActivity: FragmentActivity,
-        authParams: AuthParams,
-        listener: ResultListener
-    ): DisposableItem {
-        if (isVkAppInstalled(fragmentActivity))
-            throw VkAppMissingException()
-
-        return loginHidden(
-            fragmentActivity,
-            intentVkApp(authParams),
-            listener
-        )
-    }
-
-    /**
-     * Login with VK using the available methods:
-     * - if VK App is installed, it will be used
-     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [listener]
-     */
-    @JvmStatic
-    @CheckResult
-    fun loginWithWebView(
-        fragmentActivity: FragmentActivity,
-        clientId: Int,
-        responseType: ResponseType,
-        scopes: List<Scope> = listOf(),
-        redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
-        state: String = "",
-        revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT,
-        listener: ResultListener
-    ): DisposableItem {
-        return loginWithWebView(fragmentActivity, AuthParams(
-            clientId,
-            responseType,
-            scopes,
-            redirectUri,
-            display,
-            state,
-            revoke,
-            apiVersion
-        ), listener)
-    }
-
-    /**
-     * Login with VK using the available methods:
-     * - if VK App is installed, it will be used
-     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [listener]
-     */
-    @JvmStatic
-    @CheckResult
-    fun loginWithWebView(
-        fragmentActivity: FragmentActivity,
-        clientId: Int,
-        responseType: ResponseType,
-        scopes: List<Scope> = listOf(),
-        redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
-        state: String = "",
-        revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT,
-        listener: (VkAuthResult) -> Unit
-    ): DisposableItem {
-        return loginWithWebView(fragmentActivity, AuthParams(
-            clientId,
-            responseType,
-            scopes,
-            redirectUri,
-            display,
-            state,
-            revoke,
-            apiVersion
-        ), listener)
-    }
-
-    /**
-     * Login with VK using the available methods:
-     * - if VK App is installed, it will be used
-     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [listener]
-     *
-     * @return Disposable item: clear listeners when it needed
-     */
-    @JvmStatic
-    @CheckResult
-    fun loginWithWebView(
-        fragmentActivity: FragmentActivity,
-        authParams: AuthParams,
-        listener: (VkAuthResult) -> Unit
-    ): DisposableItem {
-        return loginHidden(
-            fragmentActivity,
-            VkAuthActivity.intent(fragmentActivity, authParams),
-            object : ResultListener {
-                override fun onResult(result: VkAuthResult) = listener(result)
-            }
-        )
-    }
-
-    /**
-     * Login with VK using the available methods:
-     * - if VK App is installed, it will be used
-     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [listener]
-     */
-    @JvmStatic
-    @CheckResult
-    fun loginWithWebView(
-        fragmentActivity: FragmentActivity,
-        authParams: AuthParams,
-        listener: ResultListener
-    ): DisposableItem {
-        return loginHidden(
-            fragmentActivity,
-            VkAuthActivity.intent(fragmentActivity, authParams),
-            listener
-        )
-    }
-
-    /**
-     * Login with VK using the available methods:
-     * - if VK App is installed, it will be used
-     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [listener]
-     */
-    @JvmStatic
-    @CheckResult
-    fun login(
-        fragmentActivity: FragmentActivity,
-        clientId: Int,
-        responseType: ResponseType,
-        scopes: List<Scope> = listOf(),
-        redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
-        state: String = "",
-        revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT,
-        listener: ResultListener
-    ): DisposableItem {
-        return login(fragmentActivity, AuthParams(
-            clientId,
-            responseType,
-            scopes,
-            redirectUri,
-            display,
-            state,
-            revoke,
-            apiVersion
-        ), listener)
-    }
-
-    /**
-     * Login with VK using the available methods:
-     * - if VK App is installed, it will be used
-     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [listener]
-     */
-    @JvmStatic
-    @CheckResult
-    fun login(
-        fragmentActivity: FragmentActivity,
-        clientId: Int,
-        responseType: ResponseType,
-        scopes: List<Scope> = listOf(),
-        redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
-        state: String = "",
-        revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT,
-        listener: (VkAuthResult) -> Unit
-    ): DisposableItem {
-        return login(
-            fragmentActivity,
-            clientId,
-            responseType,
-            scopes,
-            redirectUri,
-            display,
-            state,
-            revoke,
-            apiVersion,
-            object : ResultListener {
-                override fun onResult(result: VkAuthResult) = listener(result)
-            }
-        )
-    }
-
-    /**
-     * Login with VK using the available methods:
-     * - if VK App is installed, it will be used
-     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [listener]
-     */
-    @JvmStatic
-    @CheckResult
-    fun login(
-        fragmentActivity: FragmentActivity,
-        authParams: AuthParams,
-        listener: ResultListener
-    ): DisposableItem {
-        return when (authParams.responseType) {
-            ResponseType.AccessToken -> {
-                val intent = if (isVkAppInstalled(fragmentActivity))
-                    intentVkApp(authParams)
-                else
-                    VkAuthActivity.intent(fragmentActivity, authParams)
-
-                loginHidden(
-                    fragmentActivity,
-                    intent,
-                    listener
-                )
-            }
-            ResponseType.Code -> {
-                Log.w(LOG_TAG, INFO_RESPONSE_TYPE_NOT_SUPPORTED)
-                loginHidden(
-                    fragmentActivity,
-                    VkAuthActivity.intent(fragmentActivity, authParams),
-                    listener
-                )
-            }
-        }
-    }
-
-    /**
-     * Login with VK using the available methods:
-     * - if VK App is installed, it will be used
-     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [listener]
-     */
-    @JvmStatic
-    @CheckResult
-    fun login(
-        fragmentActivity: FragmentActivity,
-        authParams: AuthParams,
-        listener: (VkAuthResult) -> Unit
-    ): DisposableItem {
-        return login(fragmentActivity, authParams, object : ResultListener {
-            override fun onResult(result: VkAuthResult) = listener(result)
-        })
-    }
-
-    @JvmStatic
-    @CheckResult
-    private fun loginHidden(
-        fragmentActivity: FragmentActivity,
-        intent: Intent,
-        listener: ResultListener
-    ): DisposableItem {
-        return object : DisposableItem {
-            init {
-                val item = HiddenFragment.newInstance(
-                    intent,
-                    VK_AUTH_CODE,
-                    object : ActivityResultListener {
-                        override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-                            VkResultParser.parse(requestCode, resultCode, data)?.also(listener::onResult)
-
-                            fragmentActivity.supportFragmentManager.findFragmentByTag(FRAGMENT_TAG)?.also {
-                                fragmentActivity.supportFragmentManager
-                                    .beginTransaction()
-                                    .remove(it)
-                                    .commitAllowingStateLoss()
-                            }
-                        }
-                    }
-                )
-
-                fragmentActivity.supportFragmentManager
-                    .beginTransaction()
-                    .add(item, FRAGMENT_TAG)
-                    .commitAllowingStateLoss()
-            }
-
-            override fun dispose() {
-                HiddenFragment.clear()
-            }
-        }
-    }
-
-    /**
-     * Login with VK using the available methods:
-     * - if VK App is installed, it will be used
-     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [activity]'s method [Activity.onActivityResult] in both cases.
-     */
-    @JvmStatic
-    fun login(
-        activity: Activity,
+        activity: ComponentActivity,
         clientId: Int,
         responseType: ResponseType,
         scopes: List<Scope> = listOf(),
@@ -467,248 +112,147 @@ object VkAuth {
         revoke: Boolean = true,
         apiVersion: Double = VK_API_VERSION_DEFAULT
     ) {
-        login(activity, AuthParams(
-            clientId = clientId,
-            responseType = responseType,
-            scope = scopes.sumBy { it.intValue }.toString(),
-            redirectUri = redirectUri,
-            display = display,
-            state = state,
-            revoke = revoke,
-            apiVersion = apiVersion
-        ))
+        loginWithApp(
+            activity = activity,
+            authParams = AuthParams(
+                clientId = clientId,
+                responseType = responseType,
+                scopes = scopes,
+                redirectUri = redirectUri,
+                display = display,
+                state = state,
+                revoke = revoke,
+                apiVersion = apiVersion
+            )
+        )
     }
 
     /**
      * Login with VK using the available methods:
      * - if VK App is installed, it will be used
      * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [activity]'s method [Activity.onActivityResult] in both cases.
+     *
+     * @return Disposable item: clear listeners when it needed
      */
     @JvmStatic
-    fun login(
-        activity: Activity,
+    fun loginWithApp(
+        activity: ComponentActivity,
+        authParams: AuthParams
+    ) {
+        if (isVkAppInstalled(activity))
+            throw VkAppMissingException()
+
+        launchLogin(activity, intentVkApp(authParams))
+    }
+
+    /**
+     * Login with VK using the available methods:
+     * - if VK App is installed, it will be used
+     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
+     */
+    @JvmStatic
+    fun loginWithWebView(
+        activity: ComponentActivity,
         clientId: Int,
         responseType: ResponseType,
-        scope: String = "",
+        scopes: List<Scope> = listOf(),
         redirectUri: String = VK_REDIRECT_URI_DEFAULT,
         display: Display = Display.Mobile,
         state: String = "",
         revoke: Boolean = true,
         apiVersion: Double = VK_API_VERSION_DEFAULT
     ) {
-        login(activity, AuthParams(
-            clientId = clientId,
-            responseType = responseType,
-            scope = scope,
-            redirectUri = redirectUri,
-            display = display,
-            state = state,
-            revoke = revoke,
-            apiVersion = apiVersion
-        ))
+        loginWithWebView(
+            activity = activity,
+            authParams = AuthParams(
+                clientId = clientId,
+                responseType = responseType,
+                scopes = scopes,
+                redirectUri = redirectUri,
+                display = display,
+                state = state,
+                revoke = revoke,
+                apiVersion = apiVersion
+            )
+        )
     }
 
     /**
      * Login with VK using the available methods:
      * - if VK App is installed, it will be used
      * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [activity]'s method [Activity.onActivityResult] in both cases.
+     *
+     * @return Disposable item: clear listeners when it needed
      */
     @JvmStatic
-    fun login(activity: Activity, authParams: AuthParams) {
+    fun loginWithWebView(
+        activity: ComponentActivity,
+        authParams: AuthParams
+    ) {
+        launchLogin(activity, VkAuthActivity.intent(activity, authParams))
+    }
+
+    /**
+     * Login with VK using the available methods:
+     * - if VK App is installed, it will be used
+     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
+     */
+    @JvmStatic
+    fun login(
+        activity: ComponentActivity,
+        clientId: Int,
+        responseType: ResponseType,
+        scopes: List<Scope> = listOf(),
+        redirectUri: String = VK_REDIRECT_URI_DEFAULT,
+        display: Display = Display.Mobile,
+        state: String = "",
+        revoke: Boolean = true,
+        apiVersion: Double = VK_API_VERSION_DEFAULT
+    ) {
+        login(
+            activity = activity,
+            authParams = AuthParams(
+                clientId = clientId,
+                responseType = responseType,
+                scopes = scopes,
+                redirectUri = redirectUri,
+                display = display,
+                state = state,
+                revoke = revoke,
+                apiVersion = apiVersion
+            )
+        )
+    }
+
+    /**
+     * Login with VK using the available methods:
+     * - if VK App is installed, it will be used
+     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
+     */
+    @JvmStatic
+    fun login(
+        activity: ComponentActivity,
+        authParams: AuthParams
+    ) {
         when (authParams.responseType) {
             ResponseType.AccessToken -> {
-                if (isVkAppInstalled(activity)) {
-                    loginWithApp(activity, authParams)
-                } else {
-                    loginWithWebView(activity, authParams)
-                }
+                val intent = if (isVkAppInstalled(activity))
+                    intentVkApp(authParams)
+                else
+                    VkAuthActivity.intent(activity, authParams)
+
+                launchLogin(activity, intent)
             }
             ResponseType.Code -> {
                 Log.w(LOG_TAG, INFO_RESPONSE_TYPE_NOT_SUPPORTED)
-                loginWithWebView(activity, authParams)
+                launchLogin(activity, VkAuthActivity.intent(activity, authParams))
             }
         }
     }
 
-    /**
-     * Login with VK using the available methods:
-     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [activity]'s method [Activity.onActivityResult]
-     *
-     * For the params description:
-     * See: https://vk.com/dev/access_token
-     * See: https://vk.com/dev/implicit_flow_user
-     * See: https://vk.com/dev/authcode_flow_user
-     */
     @JvmStatic
-    fun loginWithWebView(
-        activity: Activity,
-        clientId: Int,
-        responseType: ResponseType,
-        scopes: List<Scope> = listOf(),
-        redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
-        state: String = "",
-        revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT
-    ) {
-        loginWithWebView(activity, AuthParams(
-            clientId = clientId,
-            responseType = responseType,
-            scope = scopes.sumBy { it.intValue }.toString(),
-            redirectUri = redirectUri,
-            display = display,
-            state = state,
-            revoke = revoke,
-            apiVersion = apiVersion
-        ))
-    }
-
-    /**
-     * Login with VK using the available methods:
-     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [activity]'s method [Activity.onActivityResult]
-     *
-     * For the params description:
-     * See: https://vk.com/dev/access_token
-     * See: https://vk.com/dev/implicit_flow_user
-     * See: https://vk.com/dev/authcode_flow_user
-     */
-    @JvmStatic
-    fun loginWithWebView(
-        activity: Activity,
-        clientId: Int,
-        responseType: ResponseType,
-        scope: String = "",
-        redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
-        state: String = "",
-        revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT
-    ) {
-        loginWithWebView(activity, AuthParams(
-            clientId = clientId,
-            responseType = responseType,
-            scope = scope,
-            redirectUri = redirectUri,
-            display = display,
-            state = state,
-            revoke = revoke,
-            apiVersion = apiVersion
-        ))
-    }
-
-    /**
-     * Login with VK using the available methods:
-     * - if the VK App is not installed, the exception will be thrown
-     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [activity]'s method [Activity.onActivityResult]
-     *
-     * For the params description:
-     * See: https://vk.com/dev/access_token
-     * See: https://vk.com/dev/implicit_flow_user
-     * See: https://vk.com/dev/authcode_flow_user
-     */
-    @JvmStatic
-    fun loginWithApp(
-        activity: Activity,
-        clientId: Int,
-        responseType: ResponseType,
-        scopes: List<Scope> = listOf(),
-        redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
-        state: String = "",
-        revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT
-    ) {
-        loginWithApp(activity, AuthParams(
-            clientId = clientId,
-            responseType = responseType,
-            scope = scopes.sumBy { it.intValue }.toString(),
-            redirectUri = redirectUri,
-            display = display,
-            state = state,
-            revoke = revoke,
-            apiVersion = apiVersion
-        ))
-    }
-
-    /**
-     * Login with VK using the available methods:
-     * - if the VK App is not installed, the exception will be thrown
-     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [activity]'s method [Activity.onActivityResult]
-     *
-     * For the params description:
-     * See: https://vk.com/dev/access_token
-     * See: https://vk.com/dev/implicit_flow_user
-     * See: https://vk.com/dev/authcode_flow_user
-     */
-    @JvmStatic
-    fun loginWithApp(
-        activity: Activity,
-        clientId: Int,
-        responseType: ResponseType,
-        scope: String = "",
-        redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
-        state: String = "",
-        revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT
-    ) {
-        loginWithApp(activity, AuthParams(
-            clientId = clientId,
-            responseType = responseType,
-            scope = scope,
-            redirectUri = redirectUri,
-            display = display,
-            state = state,
-            revoke = revoke,
-            apiVersion = apiVersion
-        ))
-    }
-
-    /**
-     * Login with VK using the available methods:
-     * - if the VK App is not installed, the exception will be thrown
-     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [activity]'s method [Activity.onActivityResult]
-     *
-     * For the params description:
-     * See: https://vk.com/dev/access_token
-     * See: https://vk.com/dev/implicit_flow_user
-     * See: https://vk.com/dev/authcode_flow_user
-     */
-    @JvmStatic
-    fun loginWithApp(
-        activity: Activity,
-        authParams: AuthParams
-    ) {
-        if (!isVkAppInstalled(activity)) {
-            throw VkAppMissingException()
-        }
-
-        activity.startActivityForResult(intentVkApp(authParams), VK_AUTH_CODE)
-    }
-
-    /**
-     * Login with VK using the available methods:
-     * - if you need the `code` instead of `access_token`, WebView the only way to retrieve it
-     * - result will be returned to [activity]'s method [Activity.onActivityResult]
-     *
-     * For the params description:
-     * See: https://vk.com/dev/access_token
-     * See: https://vk.com/dev/implicit_flow_user
-     * See: https://vk.com/dev/authcode_flow_user
-     */
-    @JvmStatic
-    fun loginWithWebView(
-        activity: Activity,
-        authParams: AuthParams
-    ) {
-        activity.startActivityForResult(VkAuthActivity.intent(activity, authParams), VK_AUTH_CODE)
+    private fun launchLogin(activity: ComponentActivity, intent: Intent) {
+        resultLaunchers[activity]?.launch(intent)
     }
 
     private fun intentVkApp(authParams: AuthParams) = Intent(VK_APP_AUTH_ACTION).apply {
@@ -882,15 +426,5 @@ object VkAuth {
          * Handle the authorization result
          */
         fun onResult(result: VkAuthResult)
-    }
-
-    /**
-     * Some disposable item
-     */
-    interface DisposableItem {
-        /**
-         * Use to clear listeners
-         */
-        fun dispose()
     }
 }
