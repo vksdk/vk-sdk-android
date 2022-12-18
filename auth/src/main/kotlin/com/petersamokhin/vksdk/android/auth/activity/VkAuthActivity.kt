@@ -2,13 +2,16 @@ package com.petersamokhin.vksdk.android.auth.activity
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.View
+import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.browser.customtabs.CustomTabsIntent
 import com.petersamokhin.vksdk.android.auth.R
 import com.petersamokhin.vksdk.android.auth.VkAuth
-import kotlinx.android.synthetic.main.activity_vk_auth.*
+import com.petersamokhin.vksdk.android.auth.view.VkAuthWebView
+
 
 /**
  * Activity used to show the web page in the WebView
@@ -17,14 +20,28 @@ internal class VkAuthActivity : AppCompatActivity() {
     private lateinit var lastQuery: String
     private lateinit var lastRedirectUri: String
 
+    private lateinit var webView: VkAuthWebView
+    private lateinit var progress: ProgressBar
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_vk_auth)
+        webView = findViewById(R.id.webView)
+        progress = findViewById(R.id.progress)
 
         lastQuery = intent.getStringExtra(EXTRA_AUTH_QUERY) ?: return finish()
         lastRedirectUri = intent.getStringExtra(EXTRA_AUTH_REDIRECT_URI) ?: return finish()
 
-        loadUrl("$VK_AUTH_BASE_URL?$lastQuery")
+        if (customTabsSupported()) {
+            loadCustomTabsUrl("$VK_AUTH_BASE_URL?$lastQuery")
+        } else {
+            loadWebViewUrl("$VK_AUTH_BASE_URL?$lastQuery")
+        }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setResult(intent?.data.toString())
     }
 
     private fun setResult(url: String) {
@@ -32,7 +49,12 @@ internal class VkAuthActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun loadUrl(authUrl: String) {
+    private fun loadCustomTabsUrl(authUrl: String) {
+        val customTabsIntent: CustomTabsIntent = CustomTabsIntent.Builder().build()
+        customTabsIntent.launchUrl(this, Uri.parse(authUrl))
+    }
+
+    private fun loadWebViewUrl(authUrl: String) {
         webView.apply {
             setResultUrl(lastRedirectUri)
             setAuthResultUrlCallback(::setResult)
@@ -62,11 +84,20 @@ internal class VkAuthActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
+    @Suppress("DEPRECATION")
+    private fun customTabsSupported(): Boolean {
+        val serviceIntent = Intent(SERVICE_ACTION)
+        serviceIntent.setPackage(CHROME_PACKAGE)
+        return packageManager.queryIntentServices(serviceIntent, 0).isNotEmpty()
+    }
+
     companion object {
         internal const val EXTRA_AUTH_RESULT = "EXTRA_AUTH_RESULT"
         internal const val EXTRA_AUTH_QUERY = "EXTRA_AUTH_QUERY"
         internal const val EXTRA_AUTH_REDIRECT_URI = "EXTRA_AUTH_REDIRECT_URI"
         private const val VK_AUTH_BASE_URL = "https://oauth.vk.com/authorize"
+        private const val SERVICE_ACTION = "android.support.customtabs.action.CustomTabsService"
+        private const val CHROME_PACKAGE = "com.android.chrome"
 
         @JvmStatic
         fun intent(activity: Activity, authParams: VkAuth.AuthParams) =

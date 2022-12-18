@@ -18,6 +18,7 @@ object Config {
             const val appCompat = "1.1.0"
             const val coreKtx = "1.2.0"
             const val constraintLayout = "1.1.3"
+            const val browser = "1.4.0"
         }
         object AndroidTest {
             const val runner = "1.2.0"

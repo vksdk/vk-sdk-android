@@ -4,10 +4,36 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <queries>
+        <package android:name="com.android.chrome" />
+    </queries>
+
     <application>
         <activity
             android:name="com.petersamokhin.vksdk.android.auth.activity.VkAuthActivity"
-            android:theme="@style/AppTheme.TransparentActivity" />
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/AppTheme.TransparentActivity">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" />
+                <data android:scheme="http" />
+                <data android:host="@string/redirect_domain" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="@string/redirect_scheme" />
+            </intent-filter>
+        </activity>
+
     </application>
 
 </manifest>
