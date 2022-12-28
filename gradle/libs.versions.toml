@@ -18,10 +18,13 @@ androidGradle = "7.3.1"
 publish = "0.22.0"
 dokka = "0.9.18"
 
+browser = "1.4.0"
+
 [libraries]
 # AndroidX
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appCompat" }
 androidx-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+androidx-browser = { module = "androidx.browser:browser", version.ref = "browser" }
 
 junit = { module = "junit:junit", version.ref = "junit" }
 runner = { module = "androidx.test:runner", version.ref = "runner" }
