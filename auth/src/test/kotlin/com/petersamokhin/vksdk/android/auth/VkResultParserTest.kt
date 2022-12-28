@@ -9,21 +9,21 @@ import org.junit.Test
 import org.junit.Assert.*
 import org.junit.rules.ExpectedException
 
-class VkResultParserTest {
+public class VkResultParserTest {
     private val requestCode = 1337
 
     @Suppress("DEPRECATION")
     @get:Rule
-    val expectedException: ExpectedException = ExpectedException.none()
+    public val expectedException: ExpectedException = ExpectedException.none()
 
     @Test
-    fun `should return null for incorrect result code`() {
+    public fun `should return null for incorrect result code`() {
         val actualResult = VkResultParser.parse(0, Activity.RESULT_CANCELED, mapOf())
         assertNull(actualResult)
     }
 
     @Test
-    fun `should parse cancel result correctly`() {
+    public fun `should parse cancel result correctly`() {
         val expectedErrorText = "some_error_text"
         val expectedErrorReason = "some_error_reason"
         val expectedErrorDescription = "some_error_description"
@@ -45,7 +45,7 @@ class VkResultParserTest {
     }
 
     @Test
-    fun `should parse error result correctly`() {
+    public fun `should parse error result correctly`() {
         val expectedErrorText = "some_error_text"
         val expectedErrorReason = "some_error_reason"
         val expectedErrorDescription = "some_error_description"
@@ -64,7 +64,7 @@ class VkResultParserTest {
     }
 
     @Test
-    fun `should parse code result correctly`() {
+    public fun `should parse code result correctly`() {
         val expectedCode = "code1234"
         val expectedState = "state1234"
         val uri = "https://oauth.vk.com/blank.html#code=$expectedCode&state=$expectedState"
@@ -81,7 +81,7 @@ class VkResultParserTest {
     }
 
     @Test
-    fun `should parse access token result correctly`() {
+    public fun `should parse access token result correctly`() {
         val expectedToken = "token1234"
         val expectedState = "state1234"
         val expectedEmail = "test@example.com"
@@ -104,42 +104,42 @@ class VkResultParserTest {
     }
 
     @Test
-    fun `should throw an exception for the invalid format`() {
+    public fun `should throw an exception for the invalid format`() {
         val uri = "https://oauth.vk.com/blank.html?test"
         expectedException.expect(IllegalArgumentException::class.java)
         VkResultParser.parseVkUri(uri)
     }
 
     @Test
-    fun `should throw an exception for the empty uri`() {
+    public fun `should throw an exception for the empty uri`() {
         val uri = ""
         expectedException.expect(IllegalArgumentException::class.java)
         VkResultParser.parseVkUri(uri)
     }
 
     @Test
-    fun `should throw an exception for the wrong format with starts from sharp symbol`() {
+    public fun `should throw an exception for the wrong format with starts from sharp symbol`() {
         val uri = "#"
         expectedException.expect(IllegalArgumentException::class.java)
         VkResultParser.parseVkUri(uri)
     }
 
     @Test
-    fun `should parse keys with the empty values`() {
+    public fun `should parse keys with the empty values`() {
         val uri = "https://oauth.vk.com/blank.html#test"
         val expectedMap = mapOf("test" to "")
         assertEquals(expectedMap, VkResultParser.parseVkUri(uri))
     }
 
     @Test
-    fun `should parse empty query`() {
+    public fun `should parse empty query`() {
         val uri = "https://oauth.vk.com/blank.html#"
         val expectedMap = mapOf<String, String>()
         assertEquals(expectedMap, VkResultParser.parseVkUri(uri))
     }
 
     @Test
-    fun `should parse valid query`() {
+    public fun `should parse valid query`() {
         val expectedCode = "code1234"
         val expectedState = "state1234"
         val expectedEmail = "test@example.com"

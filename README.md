@@ -55,8 +55,6 @@ For other information and for details, see the documentation: [https://vksdk.git
 
 ## 3rd party
 - Kotlin, [dokka](https://github.com/Kotlin/dokka)
-- [gradle-maven-publish-plugin](https://github.com/vanniktech/gradle-maven-publish-plugin)
-
 
 ## License
 See the [License](https://github.com/vksdk/vk-sdk-android/blob/master/LICENSE)

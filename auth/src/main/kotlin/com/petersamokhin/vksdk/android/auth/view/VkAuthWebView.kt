@@ -1,7 +1,6 @@
 package com.petersamokhin.vksdk.android.auth.view
 
 import android.annotation.SuppressLint
-import android.annotation.TargetApi
 import android.content.Context
 import android.os.Build
 import android.util.AttributeSet
@@ -82,15 +81,15 @@ internal class VkAuthWebView @JvmOverloads constructor(
             if (!isError) onPageShownListener?.invoke()
         }
 
-        @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest) = handleUrl(request.url.toString())
 
-        override fun shouldOverrideUrlLoading(view: WebView?, url: String?) = handleUrl(url)
+        @Deprecated("Deprecated in Java")
+        override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean =
+            handleUrl(url)
 
         private fun handleUrl(url: String?): Boolean {
             url?.takeIf {
-                it.startsWith(resultUrl ?: throw IllegalArgumentException("resultUr is null"))
+                it.startsWith(resultUrl ?: throw IllegalArgumentException("resultUrl is null"))
             }?.also {
                 resultCallback?.invoke(it)
                 return true
@@ -100,7 +99,6 @@ internal class VkAuthWebView @JvmOverloads constructor(
         }
 
         @RequiresApi(Build.VERSION_CODES.M)
-        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
             super.onReceivedError(view, request, error)
             view?.context?.also {
@@ -108,6 +106,7 @@ internal class VkAuthWebView @JvmOverloads constructor(
             }
         }
 
+        @Deprecated("Deprecated in Java")
         override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
             super.onReceivedError(view, errorCode, description, failingUrl)
             view?.context?.also {
@@ -127,7 +126,7 @@ internal class VkAuthWebView @JvmOverloads constructor(
                         d.dismiss()
                     }
                     .setNegativeButton(R.string.cancel) { d, _ ->
-                        errorCallback?.invoke("description")
+                        errorCallback?.invoke("Cancel")
                         d.dismiss()
                     }
                     .show()

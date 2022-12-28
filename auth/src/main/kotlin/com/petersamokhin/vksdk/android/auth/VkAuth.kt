@@ -10,27 +10,32 @@ import android.util.Log
 import androidx.annotation.CheckResult
 import androidx.core.os.bundleOf
 import androidx.fragment.app.FragmentActivity
+import com.petersamokhin.vksdk.android.auth.VkAuth.Display.Android
+import com.petersamokhin.vksdk.android.auth.VkAuth.Display.Ios
+import com.petersamokhin.vksdk.android.auth.VkAuth.Display.Mobile
+import com.petersamokhin.vksdk.android.auth.VkAuth.ResultListener
 import com.petersamokhin.vksdk.android.auth.activity.VkAuthActivity
 import com.petersamokhin.vksdk.android.auth.error.VkAppMissingException
 import com.petersamokhin.vksdk.android.auth.hidden.ActivityResultListener
 import com.petersamokhin.vksdk.android.auth.hidden.HiddenFragment
 import com.petersamokhin.vksdk.android.auth.model.VkAuthResult
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 /**
  * VK authorization handler.
  */
-object VkAuth {
+public object VkAuth {
     private const val LOG_TAG = "vksdk.android.auth"
     private const val FRAGMENT_TAG = "vksdk.android.auth.fragment"
 
     private const val VK_APP_AUTH_ACTION = "com.vkontakte.android.action.SDK_AUTH"
     internal const val VK_AUTH_CODE = 1337
     private const val VK_APP_PACKAGE_ID = "com.vkontakte.android"
-    const val VK_API_VERSION_DEFAULT = 5.103
-    const val VK_REDIRECT_URI_DEFAULT = "https://oauth.vk.com/blank.html"
+    public const val VK_API_VERSION_DEFAULT: String = "5.113"
+    public const val VK_REDIRECT_URI_DEFAULT: String = "https://oauth.vk.com/blank.html"
 
-    private const val INFO_RESPONSE_TYPE_NOT_SUPPORTED = "Specifying the response_type is not available with the official VK App, so it can not be used"
+    private const val INFO_RESPONSE_TYPE_NOT_SUPPORTED =
+        "Specifying the response_type is not available with the official VK App, so it can not be used"
 
     private const val VK_EXTRA_CLIENT_ID = "client_id"
     private const val VK_EXTRA_REVOKE = "revoke"
@@ -45,8 +50,8 @@ object VkAuth {
      * Checks is the official VK app installed
      * to be able to authorize through the app without the WebView
      */
-    @JvmStatic
-    fun isVkAppInstalled(context: Context): Boolean {
+    @[JvmStatic Suppress("DEPRECATION")]
+    public fun isVkAppInstalled(context: Context): Boolean {
         return try {
             context.packageManager.getPackageInfo(VK_APP_PACKAGE_ID, 0)
             true
@@ -66,7 +71,8 @@ object VkAuth {
      */
     @JvmStatic
     @CheckResult
-    fun parseResult(requestCode: Int, resultCode: Int, data: Intent?): VkAuthResult? = VkResultParser.parse(requestCode, resultCode, data)
+    public fun parseResult(requestCode: Int, resultCode: Int, data: Intent?): VkAuthResult? =
+        VkResultParser.parse(requestCode, resultCode, data)
 
     /**
      * Login with VK using the available methods:
@@ -76,28 +82,32 @@ object VkAuth {
      */
     @JvmStatic
     @CheckResult
-    fun loginWithApp(
+    public fun loginWithApp(
         fragmentActivity: FragmentActivity,
         clientId: Int,
         responseType: ResponseType,
         scopes: List<Scope> = listOf(),
         redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
+        display: Display = Mobile,
         state: String = "",
         revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT,
+        apiVersion: String = VK_API_VERSION_DEFAULT,
         listener: ResultListener
     ): DisposableItem {
-        return loginWithApp(fragmentActivity, AuthParams(
-            clientId,
-            responseType,
-            scopes,
-            redirectUri,
-            display,
-            state,
-            revoke,
-            apiVersion
-        ), listener)
+        return loginWithApp(
+            fragmentActivity = fragmentActivity,
+            authParams = AuthParams(
+                clientId = clientId,
+                responseType = responseType,
+                scopes = scopes,
+                redirectUri = redirectUri,
+                display = display,
+                state = state,
+                revoke = revoke,
+                apiVersion = apiVersion
+            ),
+            listener = listener,
+        )
     }
 
     /**
@@ -108,28 +118,32 @@ object VkAuth {
      */
     @JvmStatic
     @CheckResult
-    fun loginWithApp(
+    public fun loginWithApp(
         fragmentActivity: FragmentActivity,
         clientId: Int,
         responseType: ResponseType,
         scopes: List<Scope> = listOf(),
         redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
+        display: Display = Mobile,
         state: String = "",
         revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT,
+        apiVersion: String = VK_API_VERSION_DEFAULT,
         listener: (VkAuthResult) -> Unit
     ): DisposableItem {
-        return loginWithApp(fragmentActivity, AuthParams(
-            clientId,
-            responseType,
-            scopes,
-            redirectUri,
-            display,
-            state,
-            revoke,
-            apiVersion
-        ), listener)
+        return loginWithApp(
+            fragmentActivity = fragmentActivity,
+            authParams = AuthParams(
+                clientId = clientId,
+                responseType = responseType,
+                scopes = scopes,
+                redirectUri = redirectUri,
+                display = display,
+                state = state,
+                revoke = revoke,
+                apiVersion = apiVersion,
+            ),
+            listener = listener
+        )
     }
 
     /**
@@ -142,21 +156,15 @@ object VkAuth {
      */
     @JvmStatic
     @CheckResult
-    fun loginWithApp(
+    public fun loginWithApp(
         fragmentActivity: FragmentActivity,
         authParams: AuthParams,
         listener: (VkAuthResult) -> Unit
     ): DisposableItem {
-        if (isVkAppInstalled(fragmentActivity))
+        if (!isVkAppInstalled(fragmentActivity))
             throw VkAppMissingException()
 
-        return loginHidden(
-            fragmentActivity,
-            intentVkApp(authParams),
-            object : ResultListener {
-                override fun onResult(result: VkAuthResult) = listener(result)
-            }
-        )
+        return loginHidden(fragmentActivity, intentVkApp(authParams), listener)
     }
 
     /**
@@ -167,12 +175,12 @@ object VkAuth {
      */
     @JvmStatic
     @CheckResult
-    fun loginWithApp(
+    public fun loginWithApp(
         fragmentActivity: FragmentActivity,
         authParams: AuthParams,
         listener: ResultListener
     ): DisposableItem {
-        if (isVkAppInstalled(fragmentActivity))
+        if (!isVkAppInstalled(fragmentActivity))
             throw VkAppMissingException()
 
         return loginHidden(
@@ -190,28 +198,32 @@ object VkAuth {
      */
     @JvmStatic
     @CheckResult
-    fun loginWithWebView(
+    public fun loginWithWebView(
         fragmentActivity: FragmentActivity,
         clientId: Int,
         responseType: ResponseType,
         scopes: List<Scope> = listOf(),
         redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
+        display: Display = Mobile,
         state: String = "",
         revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT,
+        apiVersion: String = VK_API_VERSION_DEFAULT,
         listener: ResultListener
     ): DisposableItem {
-        return loginWithWebView(fragmentActivity, AuthParams(
-            clientId,
-            responseType,
-            scopes,
-            redirectUri,
-            display,
-            state,
-            revoke,
-            apiVersion
-        ), listener)
+        return loginWithWebView(
+            fragmentActivity = fragmentActivity,
+            authParams = AuthParams(
+                clientId = clientId,
+                responseType = responseType,
+                scopes = scopes,
+                redirectUri = redirectUri,
+                display = display,
+                state = state,
+                revoke = revoke,
+                apiVersion = apiVersion
+            ),
+            listener = listener
+        )
     }
 
     /**
@@ -222,28 +234,32 @@ object VkAuth {
      */
     @JvmStatic
     @CheckResult
-    fun loginWithWebView(
+    public fun loginWithWebView(
         fragmentActivity: FragmentActivity,
         clientId: Int,
         responseType: ResponseType,
         scopes: List<Scope> = listOf(),
         redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
+        display: Display = Mobile,
         state: String = "",
         revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT,
+        apiVersion: String = VK_API_VERSION_DEFAULT,
         listener: (VkAuthResult) -> Unit
     ): DisposableItem {
-        return loginWithWebView(fragmentActivity, AuthParams(
-            clientId,
-            responseType,
-            scopes,
-            redirectUri,
-            display,
-            state,
-            revoke,
-            apiVersion
-        ), listener)
+        return loginWithWebView(
+            fragmentActivity = fragmentActivity,
+            authParams = AuthParams(
+                clientId = clientId,
+                responseType = responseType,
+                scopes = scopes,
+                redirectUri = redirectUri,
+                display = display,
+                state = state,
+                revoke = revoke,
+                apiVersion = apiVersion,
+            ),
+            listener = listener
+        )
     }
 
     /**
@@ -256,19 +272,12 @@ object VkAuth {
      */
     @JvmStatic
     @CheckResult
-    fun loginWithWebView(
+    public fun loginWithWebView(
         fragmentActivity: FragmentActivity,
         authParams: AuthParams,
         listener: (VkAuthResult) -> Unit
-    ): DisposableItem {
-        return loginHidden(
-            fragmentActivity,
-            VkAuthActivity.intent(fragmentActivity, authParams),
-            object : ResultListener {
-                override fun onResult(result: VkAuthResult) = listener(result)
-            }
-        )
-    }
+    ): DisposableItem =
+        loginHidden(fragmentActivity, VkAuthActivity.intent(fragmentActivity, authParams), listener)
 
     /**
      * Login with VK using the available methods:
@@ -278,7 +287,7 @@ object VkAuth {
      */
     @JvmStatic
     @CheckResult
-    fun loginWithWebView(
+    public fun loginWithWebView(
         fragmentActivity: FragmentActivity,
         authParams: AuthParams,
         listener: ResultListener
@@ -298,28 +307,32 @@ object VkAuth {
      */
     @JvmStatic
     @CheckResult
-    fun login(
+    public fun login(
         fragmentActivity: FragmentActivity,
         clientId: Int,
         responseType: ResponseType,
         scopes: List<Scope> = listOf(),
         redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
+        display: Display = Mobile,
         state: String = "",
         revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT,
+        apiVersion: String = VK_API_VERSION_DEFAULT,
         listener: ResultListener
     ): DisposableItem {
-        return login(fragmentActivity, AuthParams(
-            clientId,
-            responseType,
-            scopes,
-            redirectUri,
-            display,
-            state,
-            revoke,
-            apiVersion
-        ), listener)
+        return login(
+            fragmentActivity = fragmentActivity,
+            authParams = AuthParams(
+                clientId = clientId,
+                responseType = responseType,
+                scopes = scopes,
+                redirectUri = redirectUri,
+                display = display,
+                state = state,
+                revoke = revoke,
+                apiVersion = apiVersion
+            ),
+            listener = listener
+        )
     }
 
     /**
@@ -330,31 +343,29 @@ object VkAuth {
      */
     @JvmStatic
     @CheckResult
-    fun login(
+    public fun login(
         fragmentActivity: FragmentActivity,
         clientId: Int,
         responseType: ResponseType,
         scopes: List<Scope> = listOf(),
         redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
+        display: Display = Mobile,
         state: String = "",
         revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT,
+        apiVersion: String = VK_API_VERSION_DEFAULT,
         listener: (VkAuthResult) -> Unit
     ): DisposableItem {
         return login(
-            fragmentActivity,
-            clientId,
-            responseType,
-            scopes,
-            redirectUri,
-            display,
-            state,
-            revoke,
-            apiVersion,
-            object : ResultListener {
-                override fun onResult(result: VkAuthResult) = listener(result)
-            }
+            fragmentActivity = fragmentActivity,
+            clientId = clientId,
+            responseType = responseType,
+            scopes = scopes,
+            redirectUri = redirectUri,
+            display = display,
+            state = state,
+            revoke = revoke,
+            apiVersion = apiVersion,
+            listener = ResultListener(listener),
         )
     }
 
@@ -366,30 +377,35 @@ object VkAuth {
      */
     @JvmStatic
     @CheckResult
-    fun login(
+    public fun login(
         fragmentActivity: FragmentActivity,
         authParams: AuthParams,
         listener: ResultListener
     ): DisposableItem {
         return when (authParams.responseType) {
             ResponseType.AccessToken -> {
-                val intent = if (isVkAppInstalled(fragmentActivity))
-                    intentVkApp(authParams)
-                else
-                    VkAuthActivity.intent(fragmentActivity, authParams)
+                val intent = when {
+                    !isVkAppInstalled(fragmentActivity) -> {
+                        intentVkApp(authParams)
+                    }
+                    else -> {
+                        VkAuthActivity.intent(fragmentActivity, authParams)
+                    }
+                }
 
                 loginHidden(
-                    fragmentActivity,
-                    intent,
-                    listener
+                    fragmentActivity = fragmentActivity,
+                    intent = intent,
+                    listener = listener
                 )
             }
+
             ResponseType.Code -> {
                 Log.w(LOG_TAG, INFO_RESPONSE_TYPE_NOT_SUPPORTED)
                 loginHidden(
-                    fragmentActivity,
-                    VkAuthActivity.intent(fragmentActivity, authParams),
-                    listener
+                    fragmentActivity = fragmentActivity,
+                    intent = VkAuthActivity.intent(fragmentActivity, authParams),
+                    listener = listener
                 )
             }
         }
@@ -403,15 +419,12 @@ object VkAuth {
      */
     @JvmStatic
     @CheckResult
-    fun login(
+    public fun login(
         fragmentActivity: FragmentActivity,
         authParams: AuthParams,
         listener: (VkAuthResult) -> Unit
-    ): DisposableItem {
-        return login(fragmentActivity, authParams, object : ResultListener {
-            override fun onResult(result: VkAuthResult) = listener(result)
-        })
-    }
+    ): DisposableItem =
+        login(fragmentActivity, authParams, ResultListener(listener))
 
     @JvmStatic
     @CheckResult
@@ -419,8 +432,8 @@ object VkAuth {
         fragmentActivity: FragmentActivity,
         intent: Intent,
         listener: ResultListener
-    ): DisposableItem {
-        return object : DisposableItem {
+    ): DisposableItem =
+        object : DisposableItem {
             init {
                 val item = HiddenFragment.newInstance(
                     intent,
@@ -449,7 +462,6 @@ object VkAuth {
                 HiddenFragment.clear()
             }
         }
-    }
 
     /**
      * Login with VK using the available methods:
@@ -458,27 +470,29 @@ object VkAuth {
      * - result will be returned to [activity]'s method [Activity.onActivityResult] in both cases.
      */
     @JvmStatic
-    fun login(
+    public fun login(
         activity: Activity,
         clientId: Int,
         responseType: ResponseType,
         scopes: List<Scope> = listOf(),
         redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
+        display: Display = Mobile,
         state: String = "",
         revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT
+        apiVersion: String = VK_API_VERSION_DEFAULT
     ) {
-        login(activity, AuthParams(
-            clientId = clientId,
-            responseType = responseType,
-            scope = scopes.sumBy { it.intValue }.toString(),
-            redirectUri = redirectUri,
-            display = display,
-            state = state,
-            revoke = revoke,
-            apiVersion = apiVersion
-        ))
+        login(
+            activity, AuthParams(
+                clientId = clientId,
+                responseType = responseType,
+                scope = scopes.sumOf(Scope::intValue).toString(),
+                redirectUri = redirectUri,
+                display = display,
+                state = state,
+                revoke = revoke,
+                apiVersion = apiVersion
+            )
+        )
     }
 
     /**
@@ -488,27 +502,29 @@ object VkAuth {
      * - result will be returned to [activity]'s method [Activity.onActivityResult] in both cases.
      */
     @JvmStatic
-    fun login(
+    public fun login(
         activity: Activity,
         clientId: Int,
         responseType: ResponseType,
         scope: String = "",
         redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
+        display: Display = Mobile,
         state: String = "",
         revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT
+        apiVersion: String = VK_API_VERSION_DEFAULT
     ) {
-        login(activity, AuthParams(
-            clientId = clientId,
-            responseType = responseType,
-            scope = scope,
-            redirectUri = redirectUri,
-            display = display,
-            state = state,
-            revoke = revoke,
-            apiVersion = apiVersion
-        ))
+        login(
+            activity, AuthParams(
+                clientId = clientId,
+                responseType = responseType,
+                scope = scope,
+                redirectUri = redirectUri,
+                display = display,
+                state = state,
+                revoke = revoke,
+                apiVersion = apiVersion
+            )
+        )
     }
 
     /**
@@ -518,7 +534,7 @@ object VkAuth {
      * - result will be returned to [activity]'s method [Activity.onActivityResult] in both cases.
      */
     @JvmStatic
-    fun login(activity: Activity, authParams: AuthParams) {
+    public fun login(activity: Activity, authParams: AuthParams) {
         when (authParams.responseType) {
             ResponseType.AccessToken -> {
                 if (isVkAppInstalled(activity)) {
@@ -527,6 +543,7 @@ object VkAuth {
                     loginWithWebView(activity, authParams)
                 }
             }
+
             ResponseType.Code -> {
                 Log.w(LOG_TAG, INFO_RESPONSE_TYPE_NOT_SUPPORTED)
                 loginWithWebView(activity, authParams)
@@ -545,27 +562,29 @@ object VkAuth {
      * See: https://vk.com/dev/authcode_flow_user
      */
     @JvmStatic
-    fun loginWithWebView(
+    public fun loginWithWebView(
         activity: Activity,
         clientId: Int,
         responseType: ResponseType,
         scopes: List<Scope> = listOf(),
         redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
+        display: Display = Mobile,
         state: String = "",
         revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT
+        apiVersion: String = VK_API_VERSION_DEFAULT
     ) {
-        loginWithWebView(activity, AuthParams(
-            clientId = clientId,
-            responseType = responseType,
-            scope = scopes.sumBy { it.intValue }.toString(),
-            redirectUri = redirectUri,
-            display = display,
-            state = state,
-            revoke = revoke,
-            apiVersion = apiVersion
-        ))
+        loginWithWebView(
+            activity, AuthParams(
+                clientId = clientId,
+                responseType = responseType,
+                scope = scopes.sumOf { it.intValue }.toString(),
+                redirectUri = redirectUri,
+                display = display,
+                state = state,
+                revoke = revoke,
+                apiVersion = apiVersion
+            )
+        )
     }
 
     /**
@@ -579,27 +598,29 @@ object VkAuth {
      * See: https://vk.com/dev/authcode_flow_user
      */
     @JvmStatic
-    fun loginWithWebView(
+    public fun loginWithWebView(
         activity: Activity,
         clientId: Int,
         responseType: ResponseType,
         scope: String = "",
         redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
+        display: Display = Mobile,
         state: String = "",
         revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT
+        apiVersion: String = VK_API_VERSION_DEFAULT
     ) {
-        loginWithWebView(activity, AuthParams(
-            clientId = clientId,
-            responseType = responseType,
-            scope = scope,
-            redirectUri = redirectUri,
-            display = display,
-            state = state,
-            revoke = revoke,
-            apiVersion = apiVersion
-        ))
+        loginWithWebView(
+            activity, AuthParams(
+                clientId = clientId,
+                responseType = responseType,
+                scope = scope,
+                redirectUri = redirectUri,
+                display = display,
+                state = state,
+                revoke = revoke,
+                apiVersion = apiVersion
+            )
+        )
     }
 
     /**
@@ -614,27 +635,29 @@ object VkAuth {
      * See: https://vk.com/dev/authcode_flow_user
      */
     @JvmStatic
-    fun loginWithApp(
+    public fun loginWithApp(
         activity: Activity,
         clientId: Int,
         responseType: ResponseType,
         scopes: List<Scope> = listOf(),
         redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
+        display: Display = Mobile,
         state: String = "",
         revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT
+        apiVersion: String = VK_API_VERSION_DEFAULT
     ) {
-        loginWithApp(activity, AuthParams(
-            clientId = clientId,
-            responseType = responseType,
-            scope = scopes.sumBy { it.intValue }.toString(),
-            redirectUri = redirectUri,
-            display = display,
-            state = state,
-            revoke = revoke,
-            apiVersion = apiVersion
-        ))
+        loginWithApp(
+            activity, AuthParams(
+                clientId = clientId,
+                responseType = responseType,
+                scope = scopes.sumOf(Scope::intValue).toString(),
+                redirectUri = redirectUri,
+                display = display,
+                state = state,
+                revoke = revoke,
+                apiVersion = apiVersion
+            )
+        )
     }
 
     /**
@@ -649,27 +672,29 @@ object VkAuth {
      * See: https://vk.com/dev/authcode_flow_user
      */
     @JvmStatic
-    fun loginWithApp(
+    public fun loginWithApp(
         activity: Activity,
         clientId: Int,
         responseType: ResponseType,
         scope: String = "",
         redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        display: Display = Display.Mobile,
+        display: Display = Mobile,
         state: String = "",
         revoke: Boolean = true,
-        apiVersion: Double = VK_API_VERSION_DEFAULT
+        apiVersion: String = VK_API_VERSION_DEFAULT
     ) {
-        loginWithApp(activity, AuthParams(
-            clientId = clientId,
-            responseType = responseType,
-            scope = scope,
-            redirectUri = redirectUri,
-            display = display,
-            state = state,
-            revoke = revoke,
-            apiVersion = apiVersion
-        ))
+        loginWithApp(
+            activity, AuthParams(
+                clientId = clientId,
+                responseType = responseType,
+                scope = scope,
+                redirectUri = redirectUri,
+                display = display,
+                state = state,
+                revoke = revoke,
+                apiVersion = apiVersion
+            )
+        )
     }
 
     /**
@@ -684,7 +709,7 @@ object VkAuth {
      * See: https://vk.com/dev/authcode_flow_user
      */
     @JvmStatic
-    fun loginWithApp(
+    public fun loginWithApp(
         activity: Activity,
         authParams: AuthParams
     ) {
@@ -706,7 +731,7 @@ object VkAuth {
      * See: https://vk.com/dev/authcode_flow_user
      */
     @JvmStatic
-    fun loginWithWebView(
+    public fun loginWithWebView(
         activity: Activity,
         authParams: AuthParams
     ) {
@@ -727,29 +752,29 @@ object VkAuth {
      * See: https://vk.com/dev/authcode_flow_user
      */
     @Parcelize
-    data class AuthParams(
+    public data class AuthParams(
         val clientId: Int,
         val responseType: ResponseType,
         val scope: String = "",
         val redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-        val display: Display = Display.Mobile,
+        val display: Display = Mobile,
         val state: String = "",
         val revoke: Boolean = true,
-        val apiVersion: Double = 5.103
-    ): Parcelable {
-        constructor(
+        val apiVersion: String = VK_API_VERSION_DEFAULT,
+    ) : Parcelable {
+        public constructor(
             clientId: Int,
             responseType: ResponseType,
             scopes: List<Scope> = listOf(),
             redirectUri: String = VK_REDIRECT_URI_DEFAULT,
-            display: Display = Display.Mobile,
+            display: Display = Mobile,
             state: String = "",
             revoke: Boolean = true,
-            apiVersion: Double = 5.103
+            apiVersion: String = VK_API_VERSION_DEFAULT
         ) : this(
             clientId = clientId,
             responseType = responseType,
-            scope = scopes.sumBy { it.intValue }.toString().let { if (it == "0") "" else it },
+            scope = scopes.sumOf<Scope> { it.intValue }.toString().let { if (it == "0") "" else it },
             redirectUri = redirectUri,
             display = display,
             state = state,
@@ -764,7 +789,7 @@ object VkAuth {
          * @return Bundle with the params
          */
         @CheckResult
-        fun asBundle(withIgnored: Boolean): Bundle {
+        public fun asBundle(withIgnored: Boolean): Bundle {
             return bundleOf(
                 VK_EXTRA_CLIENT_ID to clientId,
                 VK_EXTRA_REVOKE to revoke,
@@ -788,13 +813,13 @@ object VkAuth {
          * @return client_id=...&scope=..., etc.
          */
         @CheckResult
-        fun asQuery(): String {
+        public fun asQuery(): String {
             val map = mutableMapOf(
                 "client_id" to clientId.toString(),
                 "redirect_uri" to redirectUri,
                 "response_type" to responseType.stringValue,
                 "display" to display.stringValue,
-                "v" to apiVersion.toString()
+                "v" to apiVersion
             )
 
             if (scope.isNotEmpty()) {
@@ -818,7 +843,7 @@ object VkAuth {
      *
      * See:
      */
-    enum class ResponseType(val stringValue: String) {
+    public enum class ResponseType(public val stringValue: String) {
         /**
          * See: https://vk.com/dev/implicit_flow_user
          */
@@ -835,7 +860,7 @@ object VkAuth {
      * Prefer to use [Mobile].
      * [Android] and [Ios] are private type of the VK official clients.
      */
-    enum class Display(val stringValue: String) {
+    public enum class Display(public val stringValue: String) {
         /**
          * Mobile page without the JavaScript.
          * Most preferred variant.
@@ -869,7 +894,7 @@ object VkAuth {
      * Access token scope permissions
      * See: https://vk.com/dev/permissions
      */
-    enum class Scope(val intValue: Int) {
+    public enum class Scope(public val intValue: Int) {
         Notify(1), Friends(2), Photos(4), Audio(8),
         Video(16), Stories(64), Pages(128), LeftMenuLinks(256),
         Status(1024), Notes(2048), Messages(4096), Wall(8192),
@@ -880,20 +905,20 @@ object VkAuth {
     /**
      * Inline listener for the auth result
      */
-    interface ResultListener {
+    public fun interface ResultListener {
         /**
          * Handle the authorization result
          */
-        fun onResult(result: VkAuthResult)
+        public fun onResult(result: VkAuthResult)
     }
 
     /**
      * Some disposable item
      */
-    interface DisposableItem {
+    public fun interface DisposableItem {
         /**
          * Use to clear listeners
          */
-        fun dispose()
+        public fun dispose()
     }
 }

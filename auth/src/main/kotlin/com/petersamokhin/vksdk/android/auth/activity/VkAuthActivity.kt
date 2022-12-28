@@ -3,17 +3,23 @@ package com.petersamokhin.vksdk.android.auth.activity
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.petersamokhin.vksdk.android.auth.R
 import com.petersamokhin.vksdk.android.auth.VkAuth
-import kotlinx.android.synthetic.main.activity_vk_auth.*
+import com.petersamokhin.vksdk.android.auth.view.VkAuthWebView
 
 /**
  * Activity used to show the web page in the WebView
  */
 internal class VkAuthActivity : AppCompatActivity() {
+    private val webView by lazy(LazyThreadSafetyMode.NONE) {
+        findViewById<VkAuthWebView>(R.id.webView)
+    }
+    private val progress by lazy(LazyThreadSafetyMode.NONE) {
+        findViewById<View>(R.id.progress)
+    }
+
     private lateinit var lastQuery: String
     private lateinit var lastRedirectUri: String
 

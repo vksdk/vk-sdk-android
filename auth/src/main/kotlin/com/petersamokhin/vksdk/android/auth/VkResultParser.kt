@@ -2,7 +2,6 @@ package com.petersamokhin.vksdk.android.auth
 
 import android.app.Activity
 import android.content.Intent
-import android.util.Log
 import androidx.annotation.CheckResult
 import androidx.annotation.VisibleForTesting
 import com.petersamokhin.vksdk.android.auth.activity.VkAuthActivity
@@ -72,10 +71,12 @@ internal object VkResultParser {
                                     params[VK_EXTRA_EMAIL] ?: EMPTY_STRING_PARAM,
                                     params[VK_EXTRA_STATE] ?: EMPTY_STRING_PARAM
                                 )
+
                                 params.containsKey(VK_EXTRA_CODE) -> VkAuthResult.Code(
                                     params[VK_EXTRA_CODE] ?: EMPTY_STRING_PARAM,
                                     params[VK_EXTRA_STATE] ?: EMPTY_STRING_PARAM
                                 )
+
                                 else -> VkAuthResult.Error(
                                     params[VK_EXTRA_ERROR] ?: EMPTY_STRING_PARAM,
                                     params[VK_EXTRA_ERROR_DESCRIPTION] ?: EMPTY_STRING_PARAM,
@@ -85,6 +86,7 @@ internal object VkResultParser {
                             }
                         }
                     }
+
                     extras.containsKey(VK_EXTRA_ACCESS_TOKEN) -> {
                         VkAuthResult.AccessToken(
                             extras[VK_EXTRA_ACCESS_TOKEN] as? String ?: EMPTY_STRING_PARAM,
@@ -95,6 +97,7 @@ internal object VkResultParser {
                                 ?: EMPTY_STRING_PARAM // state is never returned by the VK App
                         )
                     }
+
                     else -> {
                         VkAuthResult.Error(
                             extras[VK_EXTRA_ERROR] as? String,
@@ -105,6 +108,7 @@ internal object VkResultParser {
                     }
                 }
             }
+
             else -> null
         }
     }
@@ -119,9 +123,11 @@ internal object VkResultParser {
                 when (val indexOfSharp = uri.lastIndexOf('#')) {
                     uri.lastIndex -> mapOf()
                     uri.lastIndex - 1 -> mapOf(uri.substring(indexOfSharp + 1) to "")
-                    else -> uri.substring(uri.indexOf('#') + 1).split('&')
-                        .map {
-                            it.split('=')
+                    else -> uri
+                        .substring(uri.indexOf('#') + 1)
+                        .split('&')
+                        .associate { param ->
+                            param.split('=')
                                 .let {
                                     if (it.size == 1) {
                                         it[0] to ""
@@ -129,10 +135,11 @@ internal object VkResultParser {
                                         it[0] to it[1]
                                     }
                                 }
-                        }.toMap()
+                        }
                 }
 
             }
+
             else -> throw IllegalArgumentException("Unknown format of the VK auth result URL")
         }
     }

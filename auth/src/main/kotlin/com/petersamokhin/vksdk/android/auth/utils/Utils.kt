@@ -5,8 +5,10 @@ import android.os.Bundle
 /**
  * Convert Bundle to map
  */
-internal fun Bundle.toMap(): Map<String, Any?> {
-    return mutableMapOf<String, Any?>().apply {
-        keySet().forEach { set(it, this@toMap.get(it)) }
+@Suppress("DEPRECATION") // why the heck deprecating this with no alternative?
+internal fun Bundle.toMap(): Map<String, Any?> =
+    mutableMapOf<String, Any?>().also { map ->
+        for (key in keySet()) {
+            map[key] = get(key)
+        }
     }
-}

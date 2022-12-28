@@ -4,7 +4,7 @@ buildToolsVersion = "33.0.1"
 minSdk = "21"
 compileSdk = "33"
 
-kotlin = "1.7.22"
+kotlin = "1.8.0"
 appCompat = "1.5.1"
 coreKtx = "1.9.0"
 
@@ -37,8 +37,7 @@ android-gradle = { id = "com.android.tools.build:gradle", version.ref = "android
 # Kotlin
 kotlin-gradle = { id = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlin-android-extensions = { id = "org.jetbrains.kotlin.android.extensions", version.ref = "kotlin" }
+kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 
 # Other
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
-publish = { id = "com.vanniktech.maven.publish", version.ref = "publish" }

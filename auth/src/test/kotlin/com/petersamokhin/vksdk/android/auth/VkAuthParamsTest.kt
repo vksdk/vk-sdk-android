@@ -3,9 +3,9 @@ package com.petersamokhin.vksdk.android.auth
 import org.junit.Assert.*
 import org.junit.Test
 
-class VkAuthParamsTest {
+public class VkAuthParamsTest {
     @Test
-    fun `should build query with default params`() {
+    public fun `should build query with default params`() {
         val params = VkAuth.AuthParams(
             1, VkAuth.ResponseType.AccessToken,
             "offline"
@@ -16,43 +16,43 @@ class VkAuthParamsTest {
     }
 
     @Test
-    fun `should build query without revoke`() {
+    public fun `should build query without revoke`() {
         val params = VkAuth.AuthParams(
             1, VkAuth.ResponseType.AccessToken,
             "offline",
             "https://oauth.vk.com/blank.html",
             VkAuth.Display.Mobile, "teststate1234",
-            false, 5.103
+            false, "5.113"
         )
-        val expectedUri = "client_id=1&redirect_uri=https://oauth.vk.com/blank.html&response_type=token&display=mobile&v=5.103&scope=offline&state=teststate1234"
+        val expectedUri = "client_id=1&redirect_uri=https://oauth.vk.com/blank.html&response_type=token&display=mobile&v=5.113&scope=offline&state=teststate1234"
 
         assertEquals(expectedUri, params.asQuery())
     }
 
     @Test
-    fun `should build query with list of scopes`() {
+    public fun `should build query with list of scopes`() {
         val params = VkAuth.AuthParams(
             1, VkAuth.ResponseType.AccessToken,
             listOf(VkAuth.Scope.Offline),
             "https://oauth.vk.com/blank.html",
             VkAuth.Display.Mobile, "teststate1234",
-            false, 5.103
+            false, "5.113"
         )
-        val expectedUri = "client_id=1&redirect_uri=https://oauth.vk.com/blank.html&response_type=token&display=mobile&v=5.103&scope=65536&state=teststate1234"
+        val expectedUri = "client_id=1&redirect_uri=https://oauth.vk.com/blank.html&response_type=token&display=mobile&v=5.113&scope=65536&state=teststate1234"
 
         assertEquals(expectedUri, params.asQuery())
     }
 
     @Test
-    fun `should build query with string scope`() {
+    public fun `should build query with string scope`() {
         val params = VkAuth.AuthParams(
             1, VkAuth.ResponseType.AccessToken,
             "offline",
             "https://oauth.vk.com/blank.html",
             VkAuth.Display.Mobile, "teststate1234",
-            true, 5.103
+            true, "5.113"
         )
-        val expectedUri = "client_id=1&redirect_uri=https://oauth.vk.com/blank.html&response_type=token&display=mobile&v=5.103&scope=offline&revoke=1&state=teststate1234"
+        val expectedUri = "client_id=1&redirect_uri=https://oauth.vk.com/blank.html&response_type=token&display=mobile&v=5.113&scope=offline&revoke=1&state=teststate1234"
 
         assertEquals(expectedUri, params.asQuery())
     }

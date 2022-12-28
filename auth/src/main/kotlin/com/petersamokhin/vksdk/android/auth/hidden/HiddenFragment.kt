@@ -7,6 +7,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 
 internal class HiddenFragment : Fragment() {
+    @Suppress("DEPRECATION")
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if (!alreadyStarted()) {
@@ -18,11 +19,13 @@ internal class HiddenFragment : Fragment() {
         }
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(
         requestCode: Int,
         resultCode: Int,
         data: Intent?
     ) {
+        @Suppress("DEPRECATION")
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == requestCode()) {
             lastListener?.onActivityResult(requestCode, resultCode, data)
@@ -32,6 +35,7 @@ internal class HiddenFragment : Fragment() {
 
     private fun alreadyStarted(): Boolean = requireArguments().getBoolean(EXTRA_ALREADY_STARTED)
 
+    @Suppress("DEPRECATION")
     @CheckResult
     private fun intent(): Intent = requireArguments().getParcelable(EXTRA_INTENT)!!
 

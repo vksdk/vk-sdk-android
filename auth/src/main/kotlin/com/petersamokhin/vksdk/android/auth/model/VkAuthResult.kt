@@ -3,7 +3,7 @@ package com.petersamokhin.vksdk.android.auth.model
 /**
  * Authorization result based on the type of auth and on successfullness.
  */
-sealed class VkAuthResult {
+public sealed class VkAuthResult {
     /**
      * Successful result for the request with `response_type=access_token`
      * See: https://vk.com/dev/implicit_flow_user
@@ -14,7 +14,7 @@ sealed class VkAuthResult {
      * @param email User email. Only provided if this scope was requested and if user had not disallowed the access.
      * @param state An arbitrary string that is returned together with authorization result, only if was provided with the request.
      */
-    data class AccessToken(
+    public data class AccessToken(
         val accessToken: String,
         val expiresIn: Int,
         val userId: Int,
@@ -29,7 +29,7 @@ sealed class VkAuthResult {
      * @param code Code
      * @param state An arbitrary string that is returned together with authorization result, only if was provided with the request.
      */
-    data class Code(
+    public data class Code(
         val code: String,
         val state: String?
     ): VkAuthResult()
@@ -41,7 +41,7 @@ sealed class VkAuthResult {
      * @param description Error description from the response
      * @param exception If error occurred before the request
      */
-    data class Error(
+    public data class Error(
         val error: String? = null,
         val description: String? = null,
         val reason: String? = null,
