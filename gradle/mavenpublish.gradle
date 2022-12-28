@@ -1,3 +1,5 @@
+apply plugin: 'signing'
+
 afterEvaluate {
     publishing {
         publications {
@@ -6,33 +8,33 @@ afterEvaluate {
                 artifactId = project.POM_ARTIFACT_ID
                 version = project.VERSION_NAME
 
-                from(components["release"])
+                from(components['release'])
 
                 pom {
-                    name.set("VK SDK Android")
+                    name.set('VK SDK Android')
                     description.set(project.POM_DESCRIPTION)
-                    url.set("https://github.com/vksdk/vk-sdk-android")
+                    url.set('https://github.com/vksdk/vk-sdk-android')
 
                     licenses {
                         license {
-                            name.set("MIT License")
-                            url.set("https://raw.githubusercontent.com/vksdk/vk-sdk-android/master/LICENSE")
-                            distribution.set("repo")
+                            name.set('MIT License')
+                            url.set('https://raw.githubusercontent.com/vksdk/vk-sdk-android/master/LICENSE')
+                            distribution.set('repo')
                         }
                     }
                     developers {
                         developer {
-                            id.set("PeterSamokhin")
-                            name.set("Peter Samokhin")
-                            url.set("https://github.com/petersamokhin")
-                            email.set("contact+vksdk@petersamokhin.com")
+                            id.set('PeterSamokhin')
+                            name.set('Peter Samokhin')
+                            url.set('https://github.com/petersamokhin')
+                            email.set('contact+vksdk@petersamokhin.com')
                         }
                     }
 
                     scm {
-                        url.set("https://github.com/vksdk/vk-sdk-android")
-                        connection.set("scm:git:git://github.com/vksdk/vk-sdk-android.git")
-                        developerConnection.set("scm:git:ssh://git@github.com/vksdk/vk-sdk-android.git")
+                        url.set('https://github.com/vksdk/vk-sdk-android')
+                        connection.set('scm:git:git://github.com/vksdk/vk-sdk-android.git')
+                        developerConnection.set('scm:git:ssh://git@github.com/vksdk/vk-sdk-android.git')
                     }
                 }
             }
@@ -42,9 +44,20 @@ afterEvaluate {
                 def releasesRepoUrl = project.REPOSITORY_URL_MAVEN_STAGING_DEFAULT
                 def snapshotsRepoUrl = project.REPOSITORY_URL_MAVEN_SNAPSHOT_DEFAULT
 
-                url = project.VERSION_NAME.endsWith("SNAPSHOT") ? snapshotsRepoUrl : releasesRepoUrl
+                url = project.VERSION_NAME.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+
+                if (!project.VERSION_NAME.endsWith('SNAPSHOT')) {
+                    credentials {
+                        username = project.ORG_GRADLE_PROJECT_SONATYPE_NEXUS_USERNAME
+                        password = project.ORG_GRADLE_PROJECT_SONATYPE_NEXUS_PASSWORD
+                    }
+                }
             }
         }
+    }
+
+    signing {
+        sign(publishing.publications['release'])
     }
 }
 
