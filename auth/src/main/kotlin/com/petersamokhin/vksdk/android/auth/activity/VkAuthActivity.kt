@@ -31,8 +31,9 @@ internal class VkAuthActivity : AppCompatActivity() {
 
         lastQuery = intent.getStringExtra(EXTRA_AUTH_QUERY) ?: return finish()
         lastRedirectUri = intent.getStringExtra(EXTRA_AUTH_REDIRECT_URI) ?: return finish()
+        val webViewRequired = intent.getBooleanExtra(EXTRA_REQUIRE_WEBVIEW, false)
 
-        if (customTabsSupported()) {
+        if (customTabsSupported() && !webViewRequired) {
             loadCustomTabsUrl("$VK_AUTH_BASE_URL?$lastQuery")
         } else {
             loadWebViewUrl("$VK_AUTH_BASE_URL?$lastQuery")
@@ -94,15 +95,17 @@ internal class VkAuthActivity : AppCompatActivity() {
     companion object {
         internal const val EXTRA_AUTH_RESULT = "EXTRA_AUTH_RESULT"
         internal const val EXTRA_AUTH_QUERY = "EXTRA_AUTH_QUERY"
+        internal const val EXTRA_REQUIRE_WEBVIEW = "EXTRA_REQUIRE_WEBVIEW"
         internal const val EXTRA_AUTH_REDIRECT_URI = "EXTRA_AUTH_REDIRECT_URI"
         private const val VK_AUTH_BASE_URL = "https://oauth.vk.com/authorize"
         private const val SERVICE_ACTION = "android.support.customtabs.action.CustomTabsService"
         private const val CHROME_PACKAGE = "com.android.chrome"
 
         @JvmStatic
-        fun intent(activity: Activity, authParams: VkAuth.AuthParams) =
+        fun intent(activity: Activity, authParams: VkAuth.AuthParams, requireWebView: Boolean) =
             Intent(activity, VkAuthActivity::class.java)
                 .putExtra(EXTRA_AUTH_QUERY, authParams.asQuery())
+                .putExtra(EXTRA_REQUIRE_WEBVIEW, requireWebView)
                 .putExtra(EXTRA_AUTH_REDIRECT_URI, authParams.redirectUri)
     }
 }
