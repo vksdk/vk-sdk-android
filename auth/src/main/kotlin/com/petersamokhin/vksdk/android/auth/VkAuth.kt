@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Parcelable
 import android.util.Log
 import androidx.annotation.CheckResult
 import androidx.core.os.bundleOf
@@ -14,6 +15,7 @@ import com.petersamokhin.vksdk.android.auth.error.VkAppMissingException
 import com.petersamokhin.vksdk.android.auth.hidden.ActivityResultListener
 import com.petersamokhin.vksdk.android.auth.hidden.HiddenFragment
 import com.petersamokhin.vksdk.android.auth.model.VkAuthResult
+import kotlinx.android.parcel.Parcelize
 
 /**
  * VK authorization handler.
@@ -724,6 +726,7 @@ object VkAuth {
      * See: https://vk.com/dev/implicit_flow_user
      * See: https://vk.com/dev/authcode_flow_user
      */
+    @Parcelize
     data class AuthParams(
         val clientId: Int,
         val responseType: ResponseType,
@@ -733,7 +736,7 @@ object VkAuth {
         val state: String = "",
         val revoke: Boolean = true,
         val apiVersion: Double = 5.103
-    ) {
+    ): Parcelable {
         constructor(
             clientId: Int,
             responseType: ResponseType,

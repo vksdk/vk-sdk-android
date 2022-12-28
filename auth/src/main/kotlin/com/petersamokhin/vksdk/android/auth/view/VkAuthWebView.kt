@@ -46,7 +46,7 @@ internal class VkAuthWebView @JvmOverloads constructor(
         lastUrl?.also(::loadUrl)
     }
 
-    override fun loadUrl(url: String?) {
+    override fun loadUrl(url: String) {
         lastUrl = url
         super.loadUrl(url)
     }
