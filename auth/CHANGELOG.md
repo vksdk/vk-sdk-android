@@ -1,5 +1,11 @@
 # Change log
 
+Version 1.1.0 *(2022-12-29)*
+----------------------------
+
+* Expose the activity result launcher and take it as a param.
+* Fix `AuthMode.RequireWebView` ignored for `ResponseType.Code`.
+
 Version 1.0.1 *(2022-12-29)*
 ----------------------------
 

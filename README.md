@@ -1,5 +1,5 @@
 # VK SDK Android
-![cover](images/android_cover.png)
+![cover](docs/images/android_cover.png)
 
 <p align="center">Some Android-specific features built into Unofficial VK SDK for Android</p>
 
@@ -17,7 +17,7 @@ See the documentation: [https://vksdk.github.io/vk-sdk-android](https://vksdk.gi
 ## Auth
 [![Android minSdkVersion](https://img.shields.io/badge/minSdkVersion-21-yellowgreen)](https://img.shields.io/badge/minSdkVersion-16-yellowgreen) [![Android targetSdkVersion](https://img.shields.io/badge/targetSdkVersion-33-green)](https://img.shields.io/badge/targetSdkVersion-33-green)
 
-Latest version:  [![maven-central](https://img.shields.io/badge/Maven%20Central-1.0.0-yellowgreen?style=flat)](https://search.maven.org/search?q=g:com.petersamokhin.vksdk.android)
+Latest version:  [![maven-central](https://img.shields.io/badge/Maven%20Central-1.1.0-yellowgreen?style=flat)](https://search.maven.org/search?q=g:com.petersamokhin.vksdk.android)
 
 [Authorization code flow](https://vk.com/dev/authcode_flow_user) is not supported by the official VK SDK and by the official app.
 But it is supported by this auth feature.
@@ -41,10 +41,10 @@ val callback = { result: VkAuthResult ->
 }
 
 // before activity.onCreate
-VkAuth.register(activity, callback)
+val launcher = VkAuth.register(activity, callback)
 
 // somewhere onClick
-VkAuth.login(activity, params)
+VkAuth.login(activity, launcher, params)
 ```
 
 ## Install

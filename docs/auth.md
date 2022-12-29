@@ -32,13 +32,13 @@ The first param is `androidx.activity.ComponentActivity` (e.g. `androidx.appcomp
 class MainActivity : AppCompatActivity(R.layout.activity_main) {
     override fun onCreate(savedInstanceState: Bundle?) {
         // must be called before onCreate
-        VkAuth.register(this) { result ->
+        val launcher = VkAuth.register(this) { result ->
             Log.e("vk_auth", result.toString())
         }
         super.onCreate(savedInstanceState)
 
         someButton.setOnClickListener {
-            VkAuth.login(this, params)
+            VkAuth.login(this, launcher, params)
         }
     }
 }
@@ -82,6 +82,7 @@ You need to make a JSON file available here: `https://domain.com/.well-known/ass
 Make your auth activity (from where you will do the auth) discoverable:
 
 ```xml
+
 <activity android:name=".auth.YourAuthActivity" android:exported="true" android:launchMode="singleTop">
 
     <intent-filter android:autoVerify="true" tools:targetApi="m">
@@ -99,7 +100,7 @@ Make your auth activity (from where you will do the auth) discoverable:
 
 #### 4. Prepare your activity
 
-In your auth activity, just before `onCreate`, call `VkAuth.register(this)`.
+In your auth activity, just before `onCreate`, call `VkAuth.register(this)` and use the returned `ActivityResultLauncher`.
 
 #### Et voila!
 
@@ -179,7 +180,7 @@ val params = VkAuth.AuthParams(
     apiVersion = apiVersion,
 )
 
-VkAuth.login(activity, params, authMode)
+VkAuth.login(activity, launcher, params, authMode)
 ```
 
 Auth modes:
@@ -251,10 +252,10 @@ val callback = { result: VkAuthResult ->
 }
 
 // before activity.onCreate
-VkAuth.register(activity, callback)
+val launcher = VkAuth.register(activity, callback)
 
 // somewhere onClick
-VkAuth.login(activity, params)
+VkAuth.login(activity, launcher, params)
 ```
 
 Example for `Code`:
@@ -277,8 +278,8 @@ val callback = { result: VkAuthResult ->
 }
 
 // before activity.onCreate
-VkAuth.register(activity, callback)
+val launcher = VkAuth.register(activity, callback)
 
 // somewhere onClick
-VkAuth.login(activity, params)
+VkAuth.login(activity, launcher, params)
 ```

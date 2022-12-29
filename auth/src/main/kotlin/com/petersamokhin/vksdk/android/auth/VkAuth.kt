@@ -24,7 +24,6 @@ import com.petersamokhin.vksdk.android.auth.error.VkAuthException
 import com.petersamokhin.vksdk.android.auth.model.VkAuthResult
 import com.petersamokhin.vksdk.android.auth.utils.toMap
 import kotlinx.parcelize.Parcelize
-import java.util.WeakHashMap
 
 /**
  * VK authorization handler.
@@ -52,8 +51,6 @@ public object VkAuth {
     private const val SERVICE_ACTION = "android.support.customtabs.action.CustomTabsService"
     private const val CHROME_PACKAGE = "com.android.chrome"
 
-    private var resultLaunchers: MutableMap<ComponentActivity, ActivityResultLauncher<Intent>> = WeakHashMap()
-
     /**
      * Register the given activity for auth result.
      * See [ComponentActivity.registerForActivityResult]
@@ -65,13 +62,8 @@ public object VkAuth {
     @JvmStatic
     public fun register(
         activity: ComponentActivity,
-        overrideLaunchersMap: MutableMap<ComponentActivity, ActivityResultLauncher<Intent>>? = null,
         listener: (Result<VkAuthResult>) -> Unit,
-    ) {
-        if (overrideLaunchersMap != null) {
-            resultLaunchers = overrideLaunchersMap.also { map -> map.putAll(resultLaunchers) }
-        }
-
+    ): ActivityResultLauncher<Intent> {
         activity.addOnNewIntentListener { intent ->
             try {
                 listener(
@@ -86,7 +78,7 @@ public object VkAuth {
             }
         }
 
-        val resultLauncher = activity.registerForActivityResult(
+        return activity.registerForActivityResult(
             /* contract = */ ActivityResultContracts.StartActivityForResult(),
         ) { result ->
             val vkResult = try {
@@ -104,22 +96,6 @@ public object VkAuth {
             } else {
                 listener(Result.failure(VkAuthException("Failed to parse the VK auth result: $result")))
             }
-        }
-        resultLaunchers[activity] = resultLauncher
-    }
-
-    /**
-     * Unregister the activity result listeners.
-     *
-     * @param activity An activity for which to unregister the listeners.
-     *                 If null, all listeners will be unregistered.
-     */
-    @JvmStatic
-    public fun unregister(activity: ComponentActivity? = null) {
-        if (activity != null) {
-            resultLaunchers.remove(activity)
-        } else {
-            resultLaunchers.clear()
         }
     }
 
@@ -173,6 +149,7 @@ public object VkAuth {
     @JvmStatic
     public fun login(
         activity: ComponentActivity,
+        launcher: ActivityResultLauncher<Intent>,
         authParams: AuthParams,
         mode: AuthMode = AuthMode.Auto,
     ) {
@@ -223,10 +200,7 @@ public object VkAuth {
                 }
 
                 if (intent != null) {
-                    launchLogin(
-                        activity = activity,
-                        intent = intent,
-                    )
+                    launcher.launch(intent)
                 }
             }
 
@@ -234,15 +208,12 @@ public object VkAuth {
                 Log.w(LOG_TAG, INFO_RESPONSE_TYPE_NOT_SUPPORTED)
 
                 when {
-                    activity.customTabsSupported() -> {
+                    mode != AuthMode.RequireWebView && activity.customTabsSupported() -> {
                         activity.startActivity(loadCustomTabsAuthUrlIntent(authParams.asQuery()))
                     }
 
                     else -> {
-                        launchLogin(
-                            activity = activity,
-                            intent = VkAuthActivity.intent(activity, authParams),
-                        )
+                        launcher.launch(VkAuthActivity.intent(activity, authParams))
                     }
                 }
             }
@@ -363,10 +334,6 @@ public object VkAuth {
 
             return map.map { (k, v) -> "$k=$v" }.joinToString("&")
         }
-    }
-
-    private fun launchLogin(activity: ComponentActivity, intent: Intent) {
-        resultLaunchers[activity]?.launch(intent)
     }
 
     /**
