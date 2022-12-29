@@ -19,6 +19,7 @@ publish = "0.22.0"
 dokka = "0.9.18"
 
 browser = "1.4.0"
+robolectric = "4.9.2"
 
 [libraries]
 # AndroidX
@@ -31,6 +32,7 @@ runner = { module = "androidx.test:runner", version.ref = "runner" }
 extJunit = { module = "androidx.test.ext:junit", version.ref = "extJunit" }
 espressoCore = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCore" }
 mockito = { module = "org.mockito:mockito-android", version.ref = "mockito" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 
 [plugins]
 # Android

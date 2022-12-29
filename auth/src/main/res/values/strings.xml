@@ -3,7 +3,4 @@
     <string name="retry">Retry</string>
     <string name="cancel">Cancel</string>
     <string name="title_error">Error occurred</string>
-
-    <string name="redirect_domain" translatable="false" />
-    <string name="redirect_scheme" translatable="false" />
 </resources>

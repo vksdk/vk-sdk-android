@@ -45,11 +45,8 @@ dependencies {
     implementation(libs.androidx.browser)
 
     testImplementation(libs.junit)
-
-    androidTestImplementation(libs.runner)
-    androidTestImplementation(libs.extJunit)
-    androidTestImplementation(libs.espressoCore)
-    androidTestImplementation(libs.mockito)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.mockito)
 }
 
 apply(from = "$rootDir/gradle/mavenpublish.gradle")

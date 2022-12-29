@@ -1,33 +1,31 @@
 package com.petersamokhin.vksdk.android.auth
 
 import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import com.petersamokhin.vksdk.android.auth.activity.VkAuthActivity
 import com.petersamokhin.vksdk.android.auth.error.VkAuthCanceledException
 import com.petersamokhin.vksdk.android.auth.model.VkAuthResult
+import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
-import org.junit.Assert.*
 import org.junit.rules.ExpectedException
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 public class VkResultParserTest {
-    private val requestCode = 1337
-
     @Suppress("DEPRECATION")
     @get:Rule
     public val expectedException: ExpectedException = ExpectedException.none()
-
-    @Test
-    public fun `should return null for incorrect result code`() {
-        val actualResult = VkResultParser.parse(0, Activity.RESULT_CANCELED, mapOf())
-        assertNull(actualResult)
-    }
 
     @Test
     public fun `should parse cancel result correctly`() {
         val expectedErrorText = "some_error_text"
         val expectedErrorReason = "some_error_reason"
         val expectedErrorDescription = "some_error_description"
-        val uri = "https://oauth.vk.com/blank.html#error=$expectedErrorText&error_reason=$expectedErrorReason&error_description=$expectedErrorDescription"
+        val uri =
+            "https://oauth.vk.com/blank.html#error=$expectedErrorText&error_reason=$expectedErrorReason&error_description=$expectedErrorDescription"
         val expectedResult = VkAuthResult.Error(
             expectedErrorText,
             expectedErrorDescription,
@@ -35,7 +33,7 @@ public class VkResultParserTest {
         )
 
         val params = mapOf<String, Any?>(VkAuthActivity.EXTRA_AUTH_RESULT to uri)
-        val actualResult = VkResultParser.parse(requestCode, Activity.RESULT_CANCELED, params)
+        val actualResult = VkResultParser.parse(Activity.RESULT_CANCELED, params)
 
         assertTrue(actualResult is VkAuthResult.Error)
         assertTrue((actualResult as VkAuthResult.Error).exception is VkAuthCanceledException)
@@ -49,7 +47,8 @@ public class VkResultParserTest {
         val expectedErrorText = "some_error_text"
         val expectedErrorReason = "some_error_reason"
         val expectedErrorDescription = "some_error_description"
-        val uri = "https://oauth.vk.com/blank.html#error=$expectedErrorText&error_reason=$expectedErrorReason&error_description=$expectedErrorDescription"
+        val uri =
+            "https://oauth.vk.com/blank.html#error=$expectedErrorText&error_reason=$expectedErrorReason&error_description=$expectedErrorDescription"
         val expectedResult = VkAuthResult.Error(
             expectedErrorText,
             expectedErrorDescription,
@@ -60,7 +59,7 @@ public class VkResultParserTest {
             VkAuthActivity.EXTRA_AUTH_RESULT to uri
         )
 
-        assertEquals(expectedResult, VkResultParser.parse(requestCode, Activity.RESULT_OK, params))
+        assertEquals(expectedResult, VkResultParser.parse(Activity.RESULT_OK, params))
     }
 
     @Test
@@ -77,7 +76,7 @@ public class VkResultParserTest {
             VkAuthActivity.EXTRA_AUTH_RESULT to uri
         )
 
-        assertEquals(expectedResult, VkResultParser.parse(requestCode, Activity.RESULT_OK, params))
+        assertEquals(expectedResult, VkResultParser.parse(Activity.RESULT_OK, params))
     }
 
     @Test
@@ -100,7 +99,7 @@ public class VkResultParserTest {
             VkAuthActivity.EXTRA_AUTH_RESULT to uri
         )
 
-        assertEquals(expectedResult, VkResultParser.parse(requestCode, Activity.RESULT_OK, params))
+        assertEquals(expectedResult, VkResultParser.parse(Activity.RESULT_OK, params))
     }
 
     @Test
@@ -150,5 +149,28 @@ public class VkResultParserTest {
             "email" to expectedEmail
         )
         assertEquals(expectedMap, VkResultParser.parseVkUri(uri))
+    }
+
+    @Test
+    public fun `should parse valid custom tabs result`() {
+        val expectedToken = "token1234"
+        val expectedState = "state1234"
+        val expectedEmail = "test@example.com"
+        val expectedExpiresIn = 0
+        val expectedUserId = 1
+        val uri = "https://oauth.vk.com/blank.html#access_token=$expectedToken&state=$expectedState&email=$expectedEmail&expires_in=$expectedExpiresIn&user_id=$expectedUserId"
+        val twiceEncodedUri = Uri.encode(Uri.encode(uri))
+
+        val referrer = "https://oauth.vk.com/auth_redirect?app_id=12345&authorize_url=$twiceEncodedUri&redirect_hash=123456"
+
+        val expectedResult = VkAuthResult.AccessToken(
+            expectedToken,
+            expectedExpiresIn,
+            expectedUserId,
+            expectedEmail,
+            expectedState
+        )
+
+        assertEquals(expectedResult, VkResultParser.parseCustomTabs(mapOf(Intent.EXTRA_REFERRER to referrer)))
     }
 }

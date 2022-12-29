@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.Log
@@ -11,13 +13,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.CheckResult
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.os.bundleOf
 import com.petersamokhin.vksdk.android.auth.VkAuth.Display.Android
 import com.petersamokhin.vksdk.android.auth.VkAuth.Display.Ios
 import com.petersamokhin.vksdk.android.auth.VkAuth.Display.Mobile
 import com.petersamokhin.vksdk.android.auth.activity.VkAuthActivity
+import com.petersamokhin.vksdk.android.auth.activity.VkAuthActivity.Companion.VK_AUTH_BASE_URL
 import com.petersamokhin.vksdk.android.auth.error.VkAuthException
 import com.petersamokhin.vksdk.android.auth.model.VkAuthResult
+import com.petersamokhin.vksdk.android.auth.utils.toMap
 import kotlinx.parcelize.Parcelize
 import java.util.WeakHashMap
 
@@ -28,7 +33,6 @@ public object VkAuth {
     private const val LOG_TAG = "vksdk.android.auth"
 
     private const val VK_APP_AUTH_ACTION = "com.vkontakte.android.action.SDK_AUTH"
-    internal const val VK_AUTH_CODE = 1337
     private const val VK_APP_PACKAGE_ID = "com.vkontakte.android"
     public const val VK_API_VERSION_DEFAULT: String = "5.113"
     public const val VK_REDIRECT_URI_DEFAULT: String = "https://oauth.vk.com/blank.html"
@@ -44,6 +48,9 @@ public object VkAuth {
     private const val VK_EXTRA_RESPONSE_TYPE = "response_type"
     private const val VK_EXTRA_DISPLAY = "display"
     private const val VK_STATE = "state"
+
+    private const val SERVICE_ACTION = "android.support.customtabs.action.CustomTabsService"
+    private const val CHROME_PACKAGE = "com.android.chrome"
 
     private var resultLaunchers: MutableMap<ComponentActivity, ActivityResultLauncher<Intent>> = WeakHashMap()
 
@@ -65,12 +72,27 @@ public object VkAuth {
             resultLaunchers = overrideLaunchersMap.also { map -> map.putAll(resultLaunchers) }
         }
 
+        activity.addOnNewIntentListener { intent ->
+            resultLaunchers.remove(activity)
+
+            try {
+                listener(
+                    Result.success(VkResultParser.parseCustomTabs(intent = intent))
+                )
+            } catch (e: Throwable) {
+                listener(
+                    Result.failure(
+                        VkAuthException("Failed to parse the VK auth result: $intent, extras=${intent.extras?.toMap()}")
+                    )
+                )
+            }
+        }
+
         val resultLauncher = activity.registerForActivityResult(
             /* contract = */ ActivityResultContracts.StartActivityForResult(),
         ) { result ->
             val vkResult = try {
                 VkResultParser.parse(
-                    requestCode = VK_AUTH_CODE,
                     resultCode = result.resultCode,
                     intent = result.data,
                 )
@@ -108,15 +130,25 @@ public object VkAuth {
      * The authorization result returned by the activity with WebView or from VK App
      * can be parsed using this method.
      *
-     * @param requestCode See [Activity.onActivityResult]
      * @param resultCode See [Activity.onActivityResult]
      * @param data See [Activity.onActivityResult]
-     * @return Parsed authorization result, null if requestCode is wrong
+     * @return Parsed authorization result
      */
     @JvmStatic
     @CheckResult
-    public fun parseResult(requestCode: Int, resultCode: Int, data: Intent?): VkAuthResult? =
-        VkResultParser.parse(requestCode, resultCode, data)
+    public fun parseResult(resultCode: Int, data: Intent?): VkAuthResult =
+        VkResultParser.parse(resultCode, data)
+
+    /**
+     * The authorization result returned by Custom Tabs can be parsed here.
+     *
+     * @param data See [Activity.onNewIntent]
+     * @return Parsed authorization result
+     */
+    @JvmStatic
+    @CheckResult
+    public fun parseCustomTabsResult(data: Intent?): VkAuthResult =
+        VkResultParser.parseCustomTabs(data)
 
     /**
      * Login with VK using the available methods:
@@ -132,51 +164,103 @@ public object VkAuth {
         activity: ComponentActivity,
         authParams: AuthParams,
         mode: AuthMode = AuthMode.Auto,
-    ): Unit = when (authParams.responseType) {
-        ResponseType.AccessToken -> {
-            val intent = when (mode) {
-                AuthMode.RequireApp -> {
-                    if (!isVkAppInstalled(activity)) {
-                        throw VkAuthException("VK app is required but is not available")
-                    }
+    ) {
+        when (authParams.responseType) {
+            ResponseType.AccessToken -> {
+                val intent = when (mode) {
+                    AuthMode.RequireApp -> {
+                        if (!isVkAppInstalled(activity)) {
+                            throw VkAuthException("VK app is required but is not available")
+                        }
 
-                    intentVkApp(authParams)
-                }
-
-                AuthMode.RequireWeb -> {
-                    VkAuthActivity.intent(activity, authParams, requireWebView = false)
-                }
-
-                AuthMode.RequireWebView -> {
-                    VkAuthActivity.intent(activity, authParams, requireWebView = true)
-                }
-
-                AuthMode.Auto -> {
-                    if (isVkAppInstalled(activity)) {
                         intentVkApp(authParams)
-                    } else {
-                        VkAuthActivity.intent(activity, authParams, requireWebView = false)
                     }
+
+                    AuthMode.RequireWeb -> {
+                        when {
+                            activity.customTabsSupported() -> {
+                                resultLaunchers.remove(activity)
+                                activity.startActivity(loadCustomTabsAuthUrlIntent(authParams.asQuery()))
+                                null
+                            }
+
+                            else -> {
+                                VkAuthActivity.intent(activity, authParams)
+                            }
+                        }
+                    }
+
+                    AuthMode.RequireWebView -> {
+                        VkAuthActivity.intent(activity, authParams)
+                    }
+
+                    AuthMode.Auto -> {
+                        when {
+                            isVkAppInstalled(activity) -> {
+                                intentVkApp(authParams)
+                            }
+
+                            activity.customTabsSupported() -> {
+                                resultLaunchers.remove(activity)
+                                activity.startActivity(loadCustomTabsAuthUrlIntent(authParams.asQuery()))
+                                null
+                            }
+
+                            else -> {
+                                VkAuthActivity.intent(activity, authParams)
+                            }
+                        }
+                    }
+                }
+
+                if (intent != null) {
+                    launchLogin(
+                        activity = activity,
+                        intent = intent,
+                    )
                 }
             }
 
-            launchLogin(activity = activity, intent = intent)
-        }
+            ResponseType.Code -> {
+                Log.w(LOG_TAG, INFO_RESPONSE_TYPE_NOT_SUPPORTED)
 
-        ResponseType.Code -> {
-            Log.w(LOG_TAG, INFO_RESPONSE_TYPE_NOT_SUPPORTED)
+                when {
+                    activity.customTabsSupported() -> {
+                        resultLaunchers.remove(activity)
+                        activity.startActivity(loadCustomTabsAuthUrlIntent(authParams.asQuery()))
+                    }
 
-            launchLogin(
-                activity = activity,
-                intent = VkAuthActivity.intent(activity, authParams, requireWebView = false),
-            )
+                    else -> {
+                        launchLogin(
+                            activity = activity,
+                            intent = VkAuthActivity.intent(activity, authParams),
+                        )
+                    }
+                }
+            }
         }
     }
 
-    private fun intentVkApp(authParams: AuthParams) = Intent(VK_APP_AUTH_ACTION).apply {
-        setPackage(VK_APP_PACKAGE_ID)
-        putExtras(authParams.asBundle(false))
+    private fun loadCustomTabsAuthUrlIntent(query: String): Intent =
+        CustomTabsIntent.Builder().build().intent
+            .apply { data = Uri.parse("$VK_AUTH_BASE_URL?$query") }
+
+    private fun Context.customTabsSupported(): Boolean {
+        val serviceIntent = Intent(SERVICE_ACTION).apply { setPackage(CHROME_PACKAGE) }
+
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            packageManager.queryIntentServices(serviceIntent, PackageManager.ResolveInfoFlags.of(0)).isNotEmpty()
+        } else {
+            @Suppress("DEPRECATION")
+            packageManager.queryIntentServices(serviceIntent, 0).isNotEmpty()
+        }
     }
+
+    private fun intentVkApp(authParams: AuthParams) =
+        Intent(VK_APP_AUTH_ACTION).apply {
+            setPackage(VK_APP_PACKAGE_ID)
+            putExtras(authParams.asBundle(withIgnored = false))
+        }
 
     /**
      * All necessary auth params
