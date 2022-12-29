@@ -146,11 +146,11 @@ val redirectUri = "YourCustomRedirectUri"
 // Default is VkAuth.Display.Mobile
 // .Android and .Ios are the private values used by the official VK Apps
 // because official apps also use WebView
-// Only supported using WebView; ignored by the VK App
+// Only supported using WebView or CustomTabs; ignored by the VK App
 val display = VkAuth.Display.Mobile // this is the default and recommended value
 
 // An arbitrary string that will be returned together with authorization result.
-// Only supported using WebView; ignored by the VK App
+// Only supported using WebView or CustomTabs; ignored by the VK App
 val state = "test_1234" // empty by default
 
 // Sets that permissions request should not be skipped even if a user is already authorized.
