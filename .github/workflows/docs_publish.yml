@@ -1,8 +1,6 @@
 name: Documentation
 
-on:
-  push:
-    branches: [ master ]
+on: workflow_dispatch
 
 permissions:
   contents: write
@@ -25,7 +23,7 @@ jobs:
         with: { arguments: dokkaGfmMultiModule, gradle-executable: gradlew }
 
       - name: Deploy documentation
-        run: pip install mkdocs-material
+        run: pip install mkdocs-material pygments
 
       - name: 'Deploy docs'
         run: mkdocs gh-deploy --force

@@ -10,8 +10,8 @@ remote_branch: gh-pages
 nav:
   - 'Overview':    index.md
   - 'Auth':        auth.md
-  - '0.0.x API':
-      - 'auth': 0.0.x/auth/index.html
+  - '1.x API':
+      - 'auth': 1.x/auth/index.html
   - 'Changelog':
       - 'Changelog: Auth': changelog-auth.md
 
@@ -34,8 +34,6 @@ extra:
       link: https://vk.com/vk_sdk
 
 markdown_extensions:
-  - codehilite:
-      guess_lang: false
+  - codehilite
   - admonition
-  - toc:
-      permalink: true
+  - toc(permalink=Link)

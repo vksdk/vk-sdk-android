@@ -2,7 +2,7 @@
  * Should be changed after each major and minor release.
  * Also, previous docs subdirectory should be added to .gitignore file.
  */
-def CURRENT_VERSION_DOCS_DIR_PREFIX = "0.0"
+def CURRENT_VERSION_DOCS_DIR_PREFIX = "1"
 
 // https://github.com/cashapp/sqldelight/blob/master/build.gradle
 tasks.named('dokkaGfmMultiModule') {

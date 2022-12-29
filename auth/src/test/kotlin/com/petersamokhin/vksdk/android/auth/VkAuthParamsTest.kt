@@ -10,8 +10,10 @@ public class VkAuthParamsTest {
     @Test
     public fun `should build query with default params`() {
         val params = VkAuth.AuthParams(
-            1, VkAuth.ResponseType.AccessToken,
-            "offline"
+            clientId = 1,
+            responseType = VkAuth.ResponseType.AccessToken,
+            redirectUri = VkAuth.VK_REDIRECT_URI_DEFAULT,
+            scope = "offline",
         )
         val expectedUri = "client_id=1&redirect_uri=https://oauth.vk.com/blank.html&response_type=token&display=mobile&v=${VkAuth.VK_API_VERSION_DEFAULT}&scope=offline&revoke=1"
 

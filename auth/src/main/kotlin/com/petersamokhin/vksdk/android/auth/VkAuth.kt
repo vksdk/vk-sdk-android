@@ -275,7 +275,7 @@ public object VkAuth {
         val clientId: Int,
         val responseType: ResponseType,
         val scope: String = "",
-        val redirectUri: String = VK_REDIRECT_URI_DEFAULT,
+        val redirectUri: String,
         val display: Display = Mobile,
         val state: String = "",
         val revoke: Boolean = true,
@@ -285,7 +285,7 @@ public object VkAuth {
             clientId: Int,
             responseType: ResponseType,
             scopes: List<Scope> = listOf(),
-            redirectUri: String = VK_REDIRECT_URI_DEFAULT,
+            redirectUri: String,
             display: Display = Mobile,
             state: String = "",
             revoke: Boolean = true,
@@ -453,6 +453,8 @@ public object VkAuth {
          * If the VK official app is available, it will be used.
          * Otherwise, if the Chrome Custom Tabs are available, they will be used.
          * Otherwise, a WebView will be used.
+         *
+         * Default behavior.
          */
         Auto
     }
