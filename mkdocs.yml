@@ -36,4 +36,4 @@ extra:
 markdown_extensions:
   - codehilite
   - admonition
-  - toc(permalink=Link)
+  - toc: { permalink: true }
