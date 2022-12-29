@@ -18,7 +18,12 @@ jobs:
       - uses: actions/setup-java@v3
         with: { distribution: temurin, java-version: 17 }
 
-      - name: 'Prepare docs'
+      - name: 'Custom docs'
+        run: |
+          cp README.md docs/index.md
+          cp auth/CHANGELOG.md docs/changelog-auth.md
+
+      - name: 'dokka docs'
         uses: gradle/gradle-build-action@v2
         with: { arguments: dokkaGfmMultiModule, gradle-executable: gradlew }
 
