@@ -20,10 +20,10 @@ Using Custom Tabs, `onNewIntent` listener will be added.
 
 ### Use the inline callback
 
-`androidx.activity.ComponentActivity` (e.g. `AppCompatActivity`) is required as the first param:
+The first param is `androidx.activity.ComponentActivity` (e.g. `androidx.appcompat.app.AppCompatActivity`):
 
 ```kotlin
-class MainActivity : androidx.appcompat.app.AppCompatActivity(R.layout.activity_main) {
+class MainActivity : AppCompatActivity(R.layout.activity_main) {
     override fun onCreate(savedInstanceState: Bundle?) {
         // must be called before onCreate
         VkAuth.register(this) { result ->
@@ -42,48 +42,50 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(R.layout.activity_
 To support auth via Chrome Custom Tabs, you need:
 
 #### Use a custom redirect URI on your website
-1. First of all, you need to add the redirect URI to the app settings.
-   For this, go here: https://vk.com/apps?act=manage
-   Choose your app, and then go to the "Settings": https://vk.com/editapp?id=XXX&section=options
-   And add your redirect URI to the "Authorized redirect URI:" field.
+1. First of all, you need to add the redirect URI to the app settings. <br/>
+   For this, go here: [https://vk.com/apps?act=manage](https://vk.com/apps?act=manage) <br/>
+   Choose your app, and then go to the "Settings": [https://vk.com/editapp?id=XXX&section=options](https://vk.com/editapp?id=XXX&section=options) <br/>
+   And add your redirect URI to the "Authorized redirect URI:" field. <br/>
 
 2. On your website, create a manifest:
-   `https://domain.com/.well-known/assetlinks.json`
-    ```json
-    [
-      {
-        "relation": [
-          "delegate_permission/common.handle_all_urls"
-        ],
-        "target": {
-          "namespace": "android_app",
-          "package_name": "com.example.android",
-          "sha256_cert_fingerprints": [
-            "./gradlew signingReport -> SHA:256"
-          ]
-        }
-      }
-    ]
-    ```
+
+`https://domain.com/.well-known/assetlinks.json`
+```json
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.example.android",
+      "sha256_cert_fingerprints": [
+        "./gradlew signingReport -> SHA:256"
+      ]
+    }
+  }
+]
+```
 
 3. Make your auth activity (from where you will do the auth) discoverable:
-    ```xml
-    <activity android:name=".auth.YourAuthActivity"
-        android:exported="true" 
-        android:launchMode="singleTop">
-    
-        <intent-filter android:autoVerify="true" tools:targetApi="m">
-            <action android:name="android.intent.action.VIEW" />
-    
-            <category android:name="android.intent.category.DEFAULT" />
-            <category android:name="android.intent.category.BROWSABLE" />
-    
-            <data android:scheme="https" />
-            <data android:scheme="http" />
-            <data android:host="example.com" />
-        </intent-filter>
-    </activity>
-    ```
+
+```xml
+<activity android:name=".auth.YourAuthActivity"
+    android:exported="true" 
+    android:launchMode="singleTop">
+
+    <intent-filter android:autoVerify="true" tools:targetApi="m">
+        <action android:name="android.intent.action.VIEW" />
+
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+
+        <data android:scheme="https" />
+        <data android:scheme="http" />
+        <data android:host="example.com" />
+    </intent-filter>
+</activity>
+```
 
 4. In your auth activity, just before `onCreate`, call `VkAuth.register(this)`.
 

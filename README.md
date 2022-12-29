@@ -1,5 +1,5 @@
 # VK SDK Android
-![cover](docs/images/android_cover.png)
+![cover](images/android_cover.png)
 
 <p align="center">Some Android-specific features built into Unofficial VK SDK for Android</p>
 
@@ -28,10 +28,8 @@ Easiest way to authorize user with VK and get the token:
 // From here: https://vk.com/apps?act=manage
 // Choose the app and get the ID from here: https://vk.com/editapp?id=XXX
 // Or go here: https://vk.com/editapp?id=XXX&section=options and see the App ID
-val appId = 1
-val scopes = listOf(VkAuth.Scope.Offline, VkAuth.Scope.Email)
 
-VkAuth.login(activity, appId, VkAuth.ResponseType.AccessToken, scopes) { result ->
+val callback = { result: VkAuthResult ->
     when (result) {
         is VkAuthResult.AccessToken -> {
             // do something with result.accessToken
@@ -41,6 +39,12 @@ VkAuth.login(activity, appId, VkAuth.ResponseType.AccessToken, scopes) { result 
         }
     }
 }
+
+// before activity.onCreate
+VkAuth.register(activity, callback)
+
+// somewhere onClick
+VkAuth.login(activity, params)
 ```
 
 ## Install
