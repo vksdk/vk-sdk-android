@@ -21,6 +21,8 @@ jobs:
       - name: 'Custom docs'
         run: |
           cp README.md docs/index.md
+          sed -i -e 's+docs/images+images+g' docs/index.md
+          
           cp auth/CHANGELOG.md docs/changelog-auth.md
 
       - name: 'dokka docs'

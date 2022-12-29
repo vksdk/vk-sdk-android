@@ -37,8 +37,8 @@ public object VkAuth {
     public const val VK_API_VERSION_DEFAULT: String = "5.113"
     public const val VK_REDIRECT_URI_DEFAULT: String = "https://oauth.vk.com/blank.html"
 
-    private const val INFO_RESPONSE_TYPE_NOT_SUPPORTED =
-        "Specifying the response_type is not available with the official VK App, so it can not be used"
+    private const val INFO_RESPONSE_TYPE_NOT_SUPPORTED = "Specifying the response_type is not available " +
+            "with the official VK App, so it can not be used"
 
     private const val VK_EXTRA_CLIENT_ID = "client_id"
     private const val VK_EXTRA_REVOKE = "revoke"
@@ -73,8 +73,6 @@ public object VkAuth {
         }
 
         activity.addOnNewIntentListener { intent ->
-            resultLaunchers.remove(activity)
-
             try {
                 listener(
                     Result.success(VkResultParser.parseCustomTabs(intent = intent))
@@ -99,8 +97,6 @@ public object VkAuth {
             } catch (e: Throwable) {
                 listener(Result.failure(e))
                 null
-            } finally {
-                resultLaunchers.remove(activity)
             }
 
             if (vkResult != null) {
@@ -110,6 +106,21 @@ public object VkAuth {
             }
         }
         resultLaunchers[activity] = resultLauncher
+    }
+
+    /**
+     * Unregister the activity result listeners.
+     *
+     * @param activity An activity for which to unregister the listeners.
+     *                 If null, all listeners will be unregistered.
+     */
+    @JvmStatic
+    public fun unregister(activity: ComponentActivity? = null) {
+        if (activity != null) {
+            resultLaunchers.remove(activity)
+        } else {
+            resultLaunchers.clear()
+        }
     }
 
     /**
@@ -179,7 +190,6 @@ public object VkAuth {
                     AuthMode.RequireWeb -> {
                         when {
                             activity.customTabsSupported() -> {
-                                resultLaunchers.remove(activity)
                                 activity.startActivity(loadCustomTabsAuthUrlIntent(authParams.asQuery()))
                                 null
                             }
@@ -201,7 +211,6 @@ public object VkAuth {
                             }
 
                             activity.customTabsSupported() -> {
-                                resultLaunchers.remove(activity)
                                 activity.startActivity(loadCustomTabsAuthUrlIntent(authParams.asQuery()))
                                 null
                             }
@@ -226,7 +235,6 @@ public object VkAuth {
 
                 when {
                     activity.customTabsSupported() -> {
-                        resultLaunchers.remove(activity)
                         activity.startActivity(loadCustomTabsAuthUrlIntent(authParams.asQuery()))
                     }
 

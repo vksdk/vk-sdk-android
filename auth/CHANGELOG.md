@@ -1,5 +1,10 @@
 # Change log
 
+Version 1.0.1 *(2022-12-29)*
+----------------------------
+
+* Switch to manual unregistering of the activity result launchers.
+
 Version 1.0.0 *(2022-12-29)*
 ----------------------------
 
