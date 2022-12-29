@@ -34,6 +34,7 @@ extra:
       link: https://vk.com/vk_sdk
 
 markdown_extensions:
-  - pymdownx.highlight
+  - pymdownx.highlight: { auto_title: true }
+  - pymdownx.superfences
   - admonition
   - toc: { permalink: true }
