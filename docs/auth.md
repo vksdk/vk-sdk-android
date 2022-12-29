@@ -52,9 +52,8 @@ To support auth via Chrome Custom Tabs, you need:
 
 First of all, you need to add the redirect URI to the app settings. <br/>
 For this, go here: [https://vk.com/apps?act=manage](https://vk.com/apps?act=manage) <br/>
-Choose your app, and then go to the "
-Settings": [https://vk.com/editapp?id=XXX&section=options](https://vk.com/editapp?id=XXX&section=options) <br/>
-And add your redirect URI to the "Authorized redirect URI:" field. <br/>
+Choose your app, and then go to the `Settings`: [https://vk.com/editapp?id=XXX&section=options](https://vk.com/editapp?id=XXX&section=options) <br/>
+And add your redirect URI to the `Authorized redirect URI:` field. <br/>
 
 #### 2. Prepare your website
 
@@ -122,7 +121,7 @@ val responseType = VkAuth.ResponseType.AccessToken
 
 // See: https://vk.com/dev/authcode_flow_user
 // Only needed if you use server-side auth
-// Only supported using WebView; ignored by the VK App
+// Only supported using WebView or CustomTabs; ignored by the VK App
 val responseType = VkAuth.ResponseType.Code
 
 // See: https://vk.com/dev/permissions
