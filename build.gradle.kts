@@ -11,7 +11,7 @@ plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.parcelize) apply false
-    alias(libs.plugins.dokka) apply false
+    alias(libs.plugins.dokka)
 }
 
 allprojects {
@@ -34,5 +34,4 @@ allprojects {
         }
     }
 }
-
-apply(from = "tasks.gradle.kts")
+apply(from = "$rootDir/gradle/dokka.gradle")

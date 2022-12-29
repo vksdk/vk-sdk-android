@@ -16,7 +16,7 @@ mockito = "4.9.0"
 
 androidGradle = "7.3.1"
 publish = "0.22.0"
-dokka = "0.9.18"
+dokka = "1.7.20"
 
 browser = "1.4.0"
 robolectric = "4.9.2"

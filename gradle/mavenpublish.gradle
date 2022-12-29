@@ -60,5 +60,3 @@ afterEvaluate {
         sign(publishing.publications['release'])
     }
 }
-
-apply from: "$rootDir/gradle/dokka.gradle"

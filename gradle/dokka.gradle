@@ -4,20 +4,12 @@
  */
 def CURRENT_VERSION_DOCS_DIR_PREFIX = "0.0"
 
-dokka {
-    outputDirectory = "$rootDir/docs/${CURRENT_VERSION_DOCS_DIR_PREFIX}.x"
-    outputFormat = 'gfm'
-    skipEmptyPackages = true
+// https://github.com/cashapp/sqldelight/blob/master/build.gradle
+tasks.named('dokkaGfmMultiModule') {
+    outputDirectory = file("$rootDir/docs/${CURRENT_VERSION_DOCS_DIR_PREFIX}.x")
 
-    //noinspection GroovyAssignabilityCheck
-    packageOptions {
-        prefix = 'com.petersamokhin.vksdk.internal'
-        suppress = true
-    }
-
-    //noinspection GroovyAssignabilityCheck
-    packageOptions {
-        prefix = 'com.petersamokhin.vksdk.android.internal'
-        suppress = true
-    }
+    moduleName.set('vk-sdk-android')
+    pluginsMapConfiguration.set([
+            "org.jetbrains.dokka.base.DokkaBase": """{ "footerMessage": "Copyright &copy; 2022 Peter Samokhin"}"""
+    ])
 }
