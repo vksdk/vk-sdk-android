@@ -1,6 +1,8 @@
 apply plugin: 'signing'
 
 afterEvaluate {
+    def isRelease = !project.VERSION_NAME.endsWith('SNAPSHOT')
+
     publishing {
         publications {
             release(MavenPublication) {
@@ -46,12 +48,12 @@ afterEvaluate {
                 def releasesRepoUrl = project.findProperty('REPOSITORY_URL_MAVEN_STAGING_DEFAULT')
                 def snapshotsRepoUrl = project.findProperty('REPOSITORY_URL_MAVEN_SNAPSHOT_DEFAULT')
 
-                url = project.VERSION_NAME.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+                url = isRelease ? releasesRepoUrl : snapshotsRepoUrl
 
-                if (!project.VERSION_NAME.endsWith('SNAPSHOT')) {
+                if (isRelease) {
                     credentials {
-                        username = project.SONATYPE_NEXUS_USERNAME
-                        password = project.SONATYPE_NEXUS_PASSWORD
+                        username = project.findProperty('SONATYPE_NEXUS_USERNAME')
+                        password = project.findProperty('SONATYPE_NEXUS_PASSWORD')
                     }
                 }
             }
@@ -59,7 +61,7 @@ afterEvaluate {
     }
 
     signing {
-        required { !project.VERSION_NAME.endsWith('SNAPSHOT') }
+        required { isRelease }
 
         def signingKey = project.findProperty('signingKey')
         def signingPassword = project.findProperty('signingPassword')

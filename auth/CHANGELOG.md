@@ -1,5 +1,15 @@
 # Change log
 
+Version 1.0.0 *(2022-12-29)*
+----------------------------
+
+* Bump `minSdk` to `21`
+* Support Chrome Custom Tabs (thanks @DrRey in #4)
+* Migrate to Activity Result API (thanks @DrRey in #5)
+* Simplify the API
+* Migrate to Robolectric tests from `androidTest`
+* Bump the dependencies
+
 Version 0.0.2 *(2020-04-27)*
 ----------------------------
 

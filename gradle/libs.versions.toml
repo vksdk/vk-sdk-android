@@ -15,7 +15,6 @@ espressoCore = "3.5.0"
 mockito = "4.9.0"
 
 androidGradle = "7.3.1"
-publish = "0.22.0"
 dokka = "1.7.20"
 
 browser = "1.4.0"
