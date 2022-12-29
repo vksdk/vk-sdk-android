@@ -1,17 +1,6 @@
 apply plugin: 'signing'
 
 afterEvaluate {
-    signing {
-        required { !project.VERSION_NAME.endsWith('SNAPSHOT') }
-
-        def signingKey = project.signingKey
-        def signingPassword = project.signingPassword
-        useInMemoryPgpKeys(signingKey, signingPassword)
-
-        sign publishing.publications.release
-        sign configurations.archives
-    }
-
     publishing {
         publications {
             release(MavenPublication) {
@@ -52,8 +41,10 @@ afterEvaluate {
         }
         repositories {
             maven {
-                def releasesRepoUrl = project.REPOSITORY_URL_MAVEN_STAGING_DEFAULT
-                def snapshotsRepoUrl = project.REPOSITORY_URL_MAVEN_SNAPSHOT_DEFAULT
+                name = 'mavenCentral'
+
+                def releasesRepoUrl = project.findProperty('REPOSITORY_URL_MAVEN_STAGING_DEFAULT')
+                def snapshotsRepoUrl = project.findProperty('REPOSITORY_URL_MAVEN_SNAPSHOT_DEFAULT')
 
                 url = project.VERSION_NAME.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
 
@@ -65,5 +56,16 @@ afterEvaluate {
                 }
             }
         }
+    }
+
+    signing {
+        required { !project.VERSION_NAME.endsWith('SNAPSHOT') }
+
+        def signingKey = project.findProperty('signingKey')
+        def signingPassword = project.findProperty('signingPassword')
+        useInMemoryPgpKeys(signingKey, signingPassword)
+
+        sign publishing.publications.release
+        sign configurations.archives
     }
 }
