@@ -1,13 +1,17 @@
 # VK SDK Android — Auth
 
-For the detailed information about the VK auth process, see the official documentation: [https://vk.com/dev/access_token](https://vk.com/dev/access_token)
+For the detailed information about the VK auth process, see the official
+documentation: [https://vk.com/dev/access_token](https://vk.com/dev/access_token)
 
 ## Ways to show the login page
+
 If user had installed the official VK App, you can ask for the access without user need to enter the login and password.
-But [Authorization code flow](https://vk.com/dev/authcode_flow_user) is not supported either by the VK App or by official SDK.
+But [Authorization code flow](https://vk.com/dev/authcode_flow_user) is not supported either by the VK App or by
+official SDK.
 Otherwise, WebView will be used and user will be used to enter their credentials only the first time.
 
 Using the VK SDK Android — Auth feature, you can:
+
 - use `login` method and way to show the page will be chosen automatically
 - force to use the WebView using the `VkAuth.AuthMode.RequireWebView` method
 - force to use the VK App using the `VkAuth.AuthMode.RequireApp` methods
@@ -15,7 +19,9 @@ Using the VK SDK Android — Auth feature, you can:
       method `VkAuth.isVkAppInstalled`
 
 ## Ways to retrieve the auth result
-In both cases, with the VK App or with WebView, some Activities will be opened using the `startActivityForResult` method.<br/>
+
+In both cases, with the VK App or with WebView, some Activities will be opened using the `startActivityForResult`
+method.<br/>
 Using Custom Tabs, `onNewIntent` listener will be added.
 
 ### Use the inline callback
@@ -39,17 +45,21 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 ```
 
 ### Chrome Custom Tabs
+
 To support auth via Chrome Custom Tabs, you need:
 
-#### Use a custom redirect URI on your website
-1. First of all, you need to add the redirect URI to the app settings. <br/>
-   For this, go here: [https://vk.com/apps?act=manage](https://vk.com/apps?act=manage) <br/>
-   Choose your app, and then go to the "Settings": [https://vk.com/editapp?id=XXX&section=options](https://vk.com/editapp?id=XXX&section=options) <br/>
-   And add your redirect URI to the "Authorized redirect URI:" field. <br/>
+#### 1. Prepare your VK app
 
-2. On your website, create a manifest:
+First of all, you need to add the redirect URI to the app settings. <br/>
+For this, go here: [https://vk.com/apps?act=manage](https://vk.com/apps?act=manage) <br/>
+Choose your app, and then go to the "
+Settings": [https://vk.com/editapp?id=XXX&section=options](https://vk.com/editapp?id=XXX&section=options) <br/>
+And add your redirect URI to the "Authorized redirect URI:" field. <br/>
 
-`https://domain.com/.well-known/assetlinks.json`
+#### 2. Prepare your website
+
+You need to make a JSON file available here: `https://domain.com/.well-known/assetlinks.json`
+
 ```json
 [
   {
@@ -60,19 +70,19 @@ To support auth via Chrome Custom Tabs, you need:
       "namespace": "android_app",
       "package_name": "com.example.android",
       "sha256_cert_fingerprints": [
-        "./gradlew signingReport -> SHA:256"
+        "Take SHA256 from ./gradlew signingReport"
       ]
     }
   }
 ]
 ```
 
-3. Make your auth activity (from where you will do the auth) discoverable:
+#### 3. Prepare your AndroidManifest.xml
+
+Make your auth activity (from where you will do the auth) discoverable:
 
 ```xml
-<activity android:name=".auth.YourAuthActivity"
-    android:exported="true" 
-    android:launchMode="singleTop">
+<activity android:name=".auth.YourAuthActivity" android:exported="true" android:launchMode="singleTop">
 
     <intent-filter android:autoVerify="true" tools:targetApi="m">
         <action android:name="android.intent.action.VIEW" />
@@ -87,12 +97,17 @@ To support auth via Chrome Custom Tabs, you need:
 </activity>
 ```
 
-4. In your auth activity, just before `onCreate`, call `VkAuth.register(this)`.
+#### 4. Prepare your activity
 
-Done! Now your user will have a greater & secure experience.<br/>
+In your auth activity, just before `onCreate`, call `VkAuth.register(this)`.
+
+#### Et voila!
+
+Now your user will have a greater & secure experience.<br/>
 They will not have to enter their passwords, if they logged into VK in their browser.
 
 ## Parameters
+
 ```kotlin
 val activity: ComponentActivity = this
 
@@ -147,14 +162,15 @@ val apiVersion = "5.113" // 5.113 by default
 ```
 
 Use `VkAuth.AuthParams`:
+
 ```kotlin
 val params = VkAuth.AuthParams(
     clientId = appId,
     responseType = responseType,
-    
+
     // required for Custom Tabs
     redirectUri = redirectUri,
-    
+
     // all the other parameters are optional
     scope = scopes,
     display = display,
@@ -167,11 +183,12 @@ VkAuth.login(activity, params, authMode)
 ```
 
 Auth modes:
+
 ```kotlin
 /**
  * Use this as a param to [VkAuth.login] to specify the behavior
  */
-public enum class AuthMode {
+enum class AuthMode {
     /**
      * VK official app will be used if [VkAuth.isVkAppInstalled],
      * otherwise an error will be thrown
@@ -202,16 +219,20 @@ public enum class AuthMode {
 ```
 
 ## Handle the result
-[*`VkAuthResult`*](https://vksdk.github.io/vk-sdk-android/1.x/auth/com.petersamokhin.vksdk.android.auth.model/-vk-auth-result/)is a sealed class.
+
+[*`VkAuthResult`*](https://vksdk.github.io/vk-sdk-android/1.x/auth/com.petersamokhin.vksdk.android.auth.model/-vk-auth-result/)
+is a sealed class.
 
 If `responseType` is `VkAuth.ResponseType.AccessToken`, you will get the `VkAuthResult.AccessToken`.
 If `responseType` is `VkAuth.ResponseType.Code`, you will get the `VkAuthResult.Code`.
 
 If auth is unsuccesfull and some error occured, you will get the `VkAuthResult.Error`.
 Check the `error`, `errorReason` and `errorDescription` fields of the result.
-But if page wasn't shown and some error occurred before the auth process, these fields will be empty and `exception` field will contain the exception.
+But if page wasn't shown and some error occurred before the auth process, these fields will be empty and `exception`
+field will contain the exception.
 
 Example for `AccessToken`:
+
 ```kotlin
 val params = VkAuth.AuthParams(
     clientId = appId,
@@ -237,6 +258,7 @@ VkAuth.login(activity, params)
 ```
 
 Example for `Code`:
+
 ```kotlin
 val params = VkAuth.AuthParams(
     clientId = appId,
