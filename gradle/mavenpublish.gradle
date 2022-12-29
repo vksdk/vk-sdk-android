@@ -4,8 +4,8 @@ afterEvaluate {
     signing {
         required { !project.VERSION_NAME.endsWith('SNAPSHOT') }
 
-        def signingKey = project.ORG_GRADLE_PROJECT_signingKey
-        def signingPassword = project.ORG_GRADLE_PROJECT_signingPassword
+        def signingKey = project.signingKey
+        def signingPassword = project.signingPassword
         useInMemoryPgpKeys(signingKey, signingPassword)
 
         sign publishing.publications.release
@@ -59,8 +59,8 @@ afterEvaluate {
 
                 if (!project.VERSION_NAME.endsWith('SNAPSHOT')) {
                     credentials {
-                        username = project.ORG_GRADLE_PROJECT_SONATYPE_NEXUS_USERNAME
-                        password = project.ORG_GRADLE_PROJECT_SONATYPE_NEXUS_PASSWORD
+                        username = project.SONATYPE_NEXUS_USERNAME
+                        password = project.SONATYPE_NEXUS_PASSWORD
                     }
                 }
             }
