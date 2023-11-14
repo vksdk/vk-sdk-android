@@ -171,6 +171,27 @@ public class VkResultParserTest {
             expectedState
         )
 
-        assertEquals(expectedResult, VkResultParser.parseCustomTabs(mapOf(Intent.EXTRA_REFERRER to referrer)))
+        assertEquals(expectedResult, VkResultParser.parseCustomTabs(null, mapOf(Intent.EXTRA_REFERRER to referrer)))
+    }
+
+    @Test
+    public fun `should parse valid custom tabs result from dataString`() {
+        val expectedToken = "token1234"
+        val expectedState = "state1234"
+        val expectedEmail = "test@example.com"
+        val expectedExpiresIn = 0
+        val expectedUserId = 1
+
+        val dataString = "https://example.com/redirect#access_token=$expectedToken&expires_in=$expectedExpiresIn&user_id=$expectedUserId&state=$expectedState&email=$expectedEmail"
+
+        val expectedResult = VkAuthResult.AccessToken(
+            expectedToken,
+            expectedExpiresIn,
+            expectedUserId,
+            expectedEmail,
+            expectedState
+        )
+
+        assertEquals(expectedResult, VkResultParser.parseCustomTabs(dataString, null))
     }
 }

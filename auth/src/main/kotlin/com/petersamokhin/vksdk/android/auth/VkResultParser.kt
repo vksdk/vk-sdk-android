@@ -125,23 +125,53 @@ internal object VkResultParser {
     @JvmStatic
     @CheckResult
     fun parseCustomTabs(intent: Intent?): VkAuthResult =
-        parseCustomTabs(intent?.extras?.toMap())
+        parseCustomTabs(
+            dataString = intent?.dataString,
+            extras = intent?.extras?.toMap()
+        )
 
     @JvmStatic
     @CheckResult
-    fun parseCustomTabs(extras: Map<String, Any?>?): VkAuthResult {
-        val referrer = extras?.get(Intent.EXTRA_REFERRER)?.toString()
-            ?: return VkAuthResult.Error(
-                error = EMPTY_STRING_PARAM,
-                description = EMPTY_STRING_PARAM,
-                reason = EMPTY_STRING_PARAM,
-                exception = VkAuthException("Unknown custom tabs result: $extras")
-            )
+    fun parseCustomTabs(dataString: String?, extras: Map<String, Any?>?): VkAuthResult {
+        val referrerResult: Result<VkAuthResult> = runCatching {
+            val referrer = extras?.get(Intent.EXTRA_REFERRER)?.toString()
+                ?: return@runCatching VkAuthResult.Error(
+                    error = EMPTY_STRING_PARAM,
+                    description = EMPTY_STRING_PARAM,
+                    reason = EMPTY_STRING_PARAM,
+                    exception = VkAuthException("Unknown custom tabs result: $extras")
+                )
 
-        val uri = Uri.parse(referrer)
-        val redirectResult = Uri.decode(Uri.decode(uri.getQueryParameter("authorize_url"))) // lol
+            val uri = Uri.parse(referrer)
+            val redirectResult = Uri.decode(Uri.decode(uri.getQueryParameter("authorize_url"))) // lol
 
-        return parse(Activity.RESULT_OK, mapOf(VkAuthActivity.EXTRA_AUTH_RESULT to redirectResult))
+            return@runCatching parse(Activity.RESULT_OK, mapOf(VkAuthActivity.EXTRA_AUTH_RESULT to redirectResult))
+        }
+
+        val dataStringResult: Result<VkAuthResult> by lazy(LazyThreadSafetyMode.NONE) {
+            runCatching {
+                parse(Activity.RESULT_OK, mapOf(VkAuthActivity.EXTRA_AUTH_RESULT to dataString))
+            }
+        }
+
+        return when {
+            referrerResult.isSuccess && referrerResult.getOrThrow() !is VkAuthResult.Error -> {
+                referrerResult.getOrThrow()
+            }
+
+            dataStringResult.isSuccess && dataStringResult.getOrThrow() !is VkAuthResult.Error -> {
+                dataStringResult.getOrThrow()
+            }
+
+            else -> {
+                VkAuthResult.Error(
+                    error = EMPTY_STRING_PARAM,
+                    description = EMPTY_STRING_PARAM,
+                    reason = EMPTY_STRING_PARAM,
+                    exception = VkAuthException("Unknown custom tabs result: $extras")
+                )
+            }
+        }
     }
 
     @JvmStatic

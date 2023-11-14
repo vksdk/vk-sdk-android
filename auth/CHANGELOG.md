@@ -1,5 +1,11 @@
 # Change log
 
+Version 1.2.0 *(2023-11-14)*
+----------------------------
+
+* Support VK custom redirect URL auth with custom tabs
+* Bump dependencies
+
 Version 1.1.0 *(2022-12-29)*
 ----------------------------
 

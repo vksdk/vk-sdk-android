@@ -9,13 +9,18 @@ plugins {
 }
 
 android {
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
     namespace = "com.petersamokhin.vksdk.android.auth"
 
     compileSdk = libs.versions.compileSdk.get().toInt()
+
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
-        targetSdk = libs.versions.compileSdk.get().toInt()
-        buildToolsVersion = libs.versions.buildToolsVersion.get()
+        compileSdk = libs.versions.compileSdk.get().toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         aarMetadata {

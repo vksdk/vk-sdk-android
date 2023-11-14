@@ -4,7 +4,7 @@ repo_name: vk-sdk-android
 repo_url: https://github.com/vksdk/vk-sdk-android
 site_description: "VK SDK Android"
 site_author: Peter Samokhin
-copyright: 'Copyright &copy; 2022 Peter Samokhin <a href="https://petersamokhin.com">https://petersamokhin.com</a>'
+copyright: 'Copyright &copy; 2023 Peter Samokhin <a href="https://petersamokhin.com">https://petersamokhin.com</a>'
 remote_branch: gh-pages
 
 nav:
